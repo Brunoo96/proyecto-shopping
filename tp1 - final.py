@@ -11,7 +11,7 @@ cont_comida = 0
 clear = lambda x: os.system(x)
 
 #funcion de ingreso
-
+print("123")
 def yes_no():
     opcion = input('ingrese una opcion (y/n): ').upper()
     while opcion != 'Y' and opcion != 'N':
