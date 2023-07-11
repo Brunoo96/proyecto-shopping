@@ -1,5 +1,53 @@
 import os
 import getpass
+import colorama
+from colorama import Fore, Back, Style
+colorama.init()
+
+""" STATUS """
+advertencia = lambda txt : print(Fore.RED + txt, Fore.RESET)
+completado = lambda txt : print(Fore.GREEN + txt,Fore.RESET)
+aviso = lambda txt : print(Fore.YELLOW + txt,Fore.RESET)
+
+
+codigo = [1, 2, 3, 4, 5, 6]
+usuarios = [['admin@shopping.com', '12345', 'administrador'],
+            ['LocalB@shopping.com', 'BBB123', 'duenoLocal'],
+            ['LocalC@shopping.com', 'CCC123', 'duenoLocal'],
+            ['LocalD@shopping.com', 'DDD123', 'duenoLocal'],
+            ['LocalA@shopping.com', 'AAA123', 'duenoLocal'],
+            ['LocalE@shopping.com', 'XDXDXD', 'Cliente']]
+
+
+def busqueda_dicotomica(array,buscar):
+    """ Llamar primero a falso burbuja e ingresar dos parametros el primero array a a ordenar y segundo valor a buscar  """
+    col=1
+    comienzo = 0
+    fin=len(array)-1
+    encontro= False
+    while ( not(encontro) and comienzo <= fin):
+        medio = (comienzo + fin) // 2
+        if(buscar == array[medio][col]):
+            encontro = True
+        elif (buscar < array[medio][col]):
+            fin = medio-1
+        else:
+            comienzo = medio +1
+    if(encontro):
+        print("Encontro:",array[medio][col])
+    else:
+        print("No encontro")
+
+def falso_burbuja(array):
+    """ Ingresar array a ordenar (Creciente) """
+    k=0
+    col = 1
+    limit=len(array)
+    for i in range (limit):
+        for j in range (0,limit-i-1):
+            if array[j][col] > array [j+1][col]:
+               array[j],array[j+1] = array[j+1],array[j]
+
 
 # Define constant
 USUARIO_ADMIN = "admin@shopping.com"
@@ -10,8 +58,11 @@ cont_comida = 0
 
 clear = lambda x: os.system(x)
 
+
+
+
+
 #funcion de ingreso
-print("123")
 def yes_no():
     opcion = input('ingrese una opcion (y/n): ').upper()
     while opcion != 'Y' and opcion != 'N':
@@ -175,6 +226,8 @@ def mostrar_mayor():
         rubro_mayor = 'el rubro con mas locales fué: perfumeria, con '
 
     print(rubro_mayor, contador_mayor)
+
+
 
 def mostrar_menor():
     rubro_menor = ''
