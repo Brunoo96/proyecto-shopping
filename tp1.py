@@ -5,13 +5,13 @@ from colorama import Fore, Back, Style
 colorama.init()
 
 """ STATUS """
-advertencia = lambda txt : print(Fore.RED + txt, Fore.RESET)
-completado = lambda txt : print(Fore.GREEN + txt,Fore.RESET)
-aviso = lambda txt : print(Fore.YELLOW + txt,Fore.RESET)
+print_advertencia = lambda txt : print(Fore.RED + txt, Fore.RESET)
+print_completado = lambda txt : print(Fore.GREEN + txt,Fore.RESET)
+print_aviso = lambda txt : print(Fore.YELLOW + txt,Fore.RESET)
 
 
 codigo = [1, 2, 3, 4, 5, 6]
-usuarios = [['admin@shopping.com', '12345', 'administrador'],
+usuarios = [['admin@shopping.com', '12345', 'Administrador'],
             ['LocalB@shopping.com', 'BBB123', 'duenoLocal'],
             ['LocalC@shopping.com', 'CCC123', 'duenoLocal'],
             ['LocalD@shopping.com', 'DDD123', 'duenoLocal'],
@@ -48,18 +48,39 @@ def falso_burbuja(array):
             if array[j][col] > array [j+1][col]:
                array[j],array[j+1] = array[j+1],array[j]
 
+def busqueda_secuencialBI(array,f,buscar):
+    """ Ingresar array a buscar , Fila ,Elemento a buscar en el array """
+    data=["False",[]]
+    index = 0
+    limit = len(array)-1
+    encontrado = False
+    while index <= limit and not(encontrado): 
+        if(array[index][f] == buscar):
+            encontrado = True  
+            data= ["True",array[index]]
+        else:
+            index += 1
+    return data
+def busqueda_secuencialUNI(array,buscar):
+    """ Ingresar array a buscar , Fila ,Elemento a buscar en el array """
+    data=["False",[]]
+    index = 0
+    limit = len(array)-1
+    encontrado = False
+    while index <= limit and not(encontrado): 
+        if(array[index] == buscar):
+            encontrado = True  
+            data= ["True",array[index]]
+        else:
+            index += 1
+    return data
 
 # Define constant
-USUARIO_ADMIN = "admin@shopping.com"
-CLAVE_ADMIN = "12345"
 cont_indumentaria = 0
 cont_perfumeria = 0
 cont_comida = 0
 
 clear = lambda x: os.system(x)
-
-
-
 
 
 #funcion de ingreso
@@ -69,27 +90,24 @@ def yes_no():
         opcion = input('error, ingrese una opcion valida (y/n): ').upper()
     return opcion
 
-def validar_usuario(val,msg):
-    aux = False
-    while aux != True:
-        opc = input(f'ingrese {msg}: ')
-        if opc == val:
-            aux = True
-        else:
-            print(f'el {msg} es incorrecto, intente nuevamente')
-    return aux
 
-def validar_clave(val,msg):
-    i = 0
-    aux = False
-    while aux != True and i < 3:
-        opc = input('ingrese la contraseña: ')
-        if opc == val:
-            aux = True
-        else:
-            print(f'la {msg} es incorrecta')
-        i += 1
-    return aux
+    
+'''
+
+    busqueda_secuencial(mail) => [mail, clave, tipo]
+    
+    ingresar mail 
+    hace la busqueda
+    devuelve el array
+    case
+    array[2] = administrador
+        menu admin
+    array[2] = dueño
+        menu dueño
+    array[2] = usuario  
+        menu usuario
+'''
+
 
 def validar_tipo(opc,tipo,desde,hasta):
     try:
@@ -104,14 +122,92 @@ def validar_tipo(opc,tipo,desde,hasta):
         validar_tipo(opc,tipo,desde,hasta)
     return opc
 
-def validar_ingreso():
+
+
+def validar_clave(val):
+    i = 0
     aux = False
-    usuario = validar_usuario(USUARIO_ADMIN, 'usuario')
-    if usuario:        
-        clave = validar_clave(CLAVE_ADMIN, 'contraseña')
-        if clave:
+    while aux != True and i < 3:
+        opc = input('ingrese la contraseña: ')
+        if val[1] == opc:
             aux = True
+        else:
+            print(f'la contraseña es incorrecta')
+        i += 1
     return aux
+
+
+def validar_dominio(email):
+    data= ["",""]
+    tipos =["@shopping.com"]
+    dominio=" "
+    longitud = len(email)
+    for i in range(0,longitud):
+        if(email[i] =="@"):
+            dominio="@"
+        elif(dominio[0]=="@"):
+            dominio+=email[i]
+    if(tipos[0] ==dominio):
+        data= ["True","Dominio existente"]
+    elif (dominio ==" "):
+        data =["False", "Ingrese un email valido"]
+    else :
+        data = ["False","Dominio inexistente, Ingrese un email valido"]
+    return data
+        
+def validar_email(email):
+    emailpass="False"
+    while emailpass =="False" and email != "0"  :
+        [STATUS,MSG]=validar_dominio(email) 
+        if(STATUS =="True"):
+            [true,data] = busqueda_secuencialBI(usuarios,0,email)
+            #data = ['usuario', 'clave','tipo']
+            if(true=="True"):
+                emailpass="True"
+            else:
+                print_advertencia("Este email no existe")
+        else:
+            clear("cls")
+            print_advertencia(MSG)
+            email=input("")
+    return [emailpass,data]
+
+
+            
+
+def validar_ingresoo():
+    email = input("Ingrese email: ")
+    [true,data]=validar_email(email)    
+    if true == "True":
+        i = 0
+        password = input('ingrese la clave: ')
+        while i < 2 and password != data[1] :
+            [true,clave] = busqueda_secuencialUNI(data,password)
+            #clave = "password"
+            if true !='True':
+                i+=1
+                password = input('clave incorrecta: ')
+            else:
+                return True
+    
+validar_ingresoo()        
+                
+                    
+                
+
+    
+""" validar_ingresoo() """
+
+""" def validar_ingreso():
+    pase = False
+    [true,data] = validar_usuario()
+    if true =="True":        
+        [bool,data] = validar_clave(data)
+        if bool == "True":
+            pase = True
+            print(data)
+    input("")
+    return pase """
 
 # procedure
 def construccion():
@@ -249,5 +345,5 @@ def mostrar_menor():
 def inicio():
     validar_menu() if validar_ingreso() else print('Alcanzó el límite de inicio de sesion')
 
-inicio()
+""" inicio() """
 
