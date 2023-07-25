@@ -19,27 +19,38 @@ print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
 clear = lambda x: os.system(x)
 
 
+""" codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
+for i in range(50):
+    codLocal[i][0] = i + 1 """
+# codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
+
+
+""" datosLocal = [
+    ["" for _ in range(0, 4)] for _ in range(0, 50)
+]  """  # [[rubro], [nombre], [ubicacion], estado]
+""" Metodos de array """
+
+
 codUsuario = [1, 2, 3, 4, 5, 6]
 usuarios = [
     ["admin@shopping.com", "12345", "Administrador"],
+    ["LocalA@shopping.com", "AAA123", "duenoLocal"],
     ["LocalB@shopping.com", "BBB123", "duenoLocal"],
     ["LocalC@shopping.com", "CCC123", "duenoLocal"],
     ["LocalD@shopping.com", "DDD123", "duenoLocal"],
-    ["LocalA@shopping.com", "AAA123", "duenoLocal"],
     ["LocalE@shopping.com", "XDXDXD", "Cliente"],
 ]
-codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
-# codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
-for i in range(50):
-    codLocal[i][0] = i + 1
 
 
 datosLocal = [
-    ["" for _ in range(0, 4)] for _ in range(0, 50)
-]  # [[nombre], [ubicacion], [rubro], estado]
-""" Metodos de array """
-
-print(datosLocal)
+    ["Indumentaria", "Paz", "Rosario", "A"],
+    ["Perfumeria", "Letra", "Bermudez", "A"],
+    ["", "", "", ""],
+    ["Indumentaria", "Per", "Perez", "A"],
+    ["Comida", "McDonalds", "Alvarez", "A"],
+    ["Indumentaria", "Nike", "Rosario", "A"],
+]
+codLocal = [[1, 2], [2, 3], [3, 0], [4, 5], [5, 2], [6, 5]]
 
 
 def busqueda_dicotomica(array, buscar):
@@ -57,9 +68,22 @@ def busqueda_dicotomica(array, buscar):
         else:
             comienzo = medio + 1
     if encontro:
-        print("Encontro:", array[medio][col])
+        """print("Encontro:", array[medio][col])"""
+        return True
     else:
-        print("No encontro")
+        """print("No encontro")"""
+        return False
+
+
+def falsoburbuja(array, col):
+    """Paramaetros :Array(Ordenar), Columna(Ordenar)"""
+    limit = len(array) - 1
+    for i in range(0, limit):
+        for j in range(i + 1, limit + 1):
+            if array[i][col] > array[j][col]:
+                aux = array[i]
+                array[i] = array[j]
+                array[j] = aux
 
 
 def falsaburbujaBI(datos_local, datos_usuario):
@@ -179,6 +203,17 @@ def validar_email(email):
             print_advertencia(MSG)
             email = input("")
     return [emailpass, data]
+
+
+def validar_nombre(nombre):
+    aux = datosLocal[:]
+    falsoburbuja(aux, 1)
+    encontro = busqueda_dicotomica(aux, nombre)
+    if not (encontro):
+        return nombre
+    else:
+        print("el nombre está ocupado")
+        return validar_nombre(input("Ingrese el nombre nuevamente: "))
 
 
 def validar_ingreso():
@@ -358,60 +393,95 @@ def validacion_rubro(rubro, resultado):
 
 def validacion_usuario(usuario):
     try:
-        if usuarios[usuario][2] == "duenoLocal":
-            return usuarios[usuario][2]
+        if usuarios[usuario - 1][2] == "duenoLocal":
+            return usuarios[usuario - 1][1]
     except:
         print(
-            "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario? [Si] [No]"
+            "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
         )
         opc = yes_no()
-        if opc == "Y":
-            print("////")
-        else:
-            return False
+        while opc == "Y":
+            return validacion_usuario(
+                validar_tipo(
+                    input("Ingrese nuevamente un codigo de usuario: "), int, 0, 6
+                )
+            )
+        return False
 
 
+# [[rubro], [nombre], [ubicacion], estado]
 def mod_locales():
-    """mostrar_locales()"""
-    opcion = validar_tipo(
-        input("ingrese el codigo del local que desea modificar: "), int, 0, 50
+    bool = True
+    aux = "Y"
+
+    cod = validar_tipo(
+        input("ingrese el codigo del local que desea modificar: "), int, 1, 50
     )
 
-    if datosLocal[opcion][2] != "0":
-        datosLocal[opcion][0] = input("ingrese el nombre del local: ")
-        datosLocal[opcion][0] = input("ingrese la ubicacion del local: ")
-        datosLocal[opcion][0] = validacion_rubro(
-            input("ingrese el rubro del local: "), ""
-        )
-    else:
-        print("el codigo ingresado no pertenece a un local existente")
+    while bool and aux == "Y":
+        print("Que desea modificar ? \n 1-Rubro \n 2-Nombre \n 3-Ubicacion")
+        opcion = input("")
+        match opcion:
+            case "1":
+                datosLocal[cod - 1][0] = validacion_rubro(
+                    input("ingrese el rubro del local: "), ""
+                )
+                print_completado("Guardado Exitoso")
+            case "2":
+                datosLocal[cod - 1][1] = input("ingrese el nombre del local: ")
+                print_completado("Guardado Existoso")
+            case "3":
+                datosLocal[cod - 1][2] = input("ingrese la ubicacion del local: ")
+                print_completado("Guardado Existoso")
+            case _:
+                print("asd")
+        print("desea modificar algo más?")
+        aux = yes_no()
+    print(datosLocal)
+    clear("pause")
+    clear("cls")
 
 
+# [[rubro], [nombre], [ubicacion], estado]
 def crear_locales():
     opcion = validar_tipo(
         input("Ingrese codigo del local : "), int, 1, 50
     )  # codLocal[i][0]
 
     codusuario = validacion_usuario(
-        validar_tipo(input("Ingrese codigo de usuario "), int, 0, 6)  # codLocal[i][1]
-    )
+        validar_tipo(input("Ingrese codigo de usuario "), int, 1, 6)
+    )  # codLocal[i][1]
 
-    if datosLocal[opcion - 1][2] == "":
-        nombrelocal = input("ingrese el nombre del local: ")
-        ubicacionlocal = input("ingrese la ubicacion del local: ")
+    if datosLocal[opcion - 1][2] == "" and codusuario:
         rubrolocal = validacion_rubro(input("ingrese el rubro del local: "), "")
+        nombrelocal = validar_nombre(input("ingrese el nombre del local: "))
+        ubicacionlocal = input("ingrese la ubicacion del local: ")
         if codusuario:
-            datosLocal[opcion - 1][0] = nombrelocal
-            datosLocal[opcion - 1][1] = ubicacionlocal
-            datosLocal[opcion - 1][2] = rubrolocal
+            datosLocal[opcion - 1][0] = rubrolocal
+            datosLocal[opcion - 1][1] = nombrelocal
+            datosLocal[opcion - 1][2] = ubicacionlocal
             datosLocal[opcion - 1][3] = "A"
-            print(datosLocal)
+            codLocal[opcion - 1][1] = codusuario
     else:
         print("el codigo ingresado pertenece a un local existente")
+    print(datosLocal)
+    print(codLocal)
 
 
-crear_locales()
+def elim_locales():
+    opcion = validar_tipo(
+        input("ingrese el codigo del local que desea eliminar: "), int, 0, 50
+    )
+    print_advertencia("El local va ser dado de baja esta seguro de este movimiento? ")
 
+    opcyesno = yes_no()
+    # codigo = [codLocal, indice]
+    if opcyesno == "Y":
+        print_aviso(f"el local {opcion} se ha dado de baja")
+        datosLocal[opcion - 1][3] = "B"
+    else:
+        print_aviso("El local no se dio de baja")
+    clear("pause")
 
 
 
@@ -438,37 +508,17 @@ def mayor(rubros):
                 """print(datosLocal[i][0])"""
 
 
+""" 
 def imprimir_datos(datos):
     # Encabezados
-    print("{: <8} {: >7} {: >11} {: >8}".format(" Rubro", "Nombre", "Ubicacion","Estado"))
-    print("{:-<7} {:-<8} {:->11} {:->8}".format("","","",""))
-    # Datos
-    for nombre, rubro, ubicacion,estado in datos:
-        print("{: <12} {: >10} {: >10.2f}".format(rubro, nombre, ubicacion,estado))
-
-def falsoburbuja(array, col):
-    print(array)
-    limit = len(array) - 1
-    for i in range(0, limit):
-        for j in range(i + 1, limit + 1):
-            print(j)
-            if array[i][col] > array[j][col]:
-                aux = array[i]
-                array[i] = array[j]
-                array[j] = aux
-
-
-def elim_locales(array):
-    """mostrar_locales()"""
-    opcion = validar_tipo(
-        input("ingrese el codigo del local que desea eliminar: ", int, 0, 50)
+    print(
+        "{: <8} {: >7} {: >11} {: >8}".format(" Rubro", "Nombre", "Ubicacion", "Estado")
     )
-    codigo = busqueda_secuencialBI(array, 0, opcion)
-    # codigo = [codLocal, indice]
-    datosLocal[codigo[2]][0] = ""
-    datosLocal[codigo[2]][1] = ""
-    datosLocal[codigo[2]][2] = ""
-    datosLocal[codigo[2]][3] = ""
+    print("{:-<7} {:-<8} {:->11} {:->8}".format("", "", "", ""))
+    # Datos
+    for nombre, rubro, ubicacion, estado in datos:
+        print("{: <12} {: >10} {: >10.2f}".format(rubro, nombre, ubicacion, estado))
+ """
 
 
 def mapa_locales():
@@ -515,4 +565,4 @@ def inicio():
             cliente_menu()
 
 
-print()
+crear_locales()
