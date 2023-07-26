@@ -25,9 +25,9 @@ for i in range(50):
 # codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
 
 
-""" datosLocal = [
+datosLocal = [
     ["" for _ in range(0, 4)] for _ in range(0, 50)
-]  """  # [[rubro], [nombre], [ubicacion], estado]
+]  # [[rubro], [nombre], [ubicacion], estado]
 """ Metodos de array """
 
 
@@ -42,15 +42,19 @@ usuarios = [
 ]
 
 
-datosLocal = [
+""" datosLocal = [
     ["Indumentaria", "Paz", "Rosario", "A"],
     ["Perfumeria", "Letra", "Bermudez", "A"],
     ["", "", "", ""],
     ["Indumentaria", "Per", "Perez", "A"],
     ["Comida", "McDonalds", "Alvarez", "A"],
     ["Indumentaria", "Nike", "Rosario", "A"],
-]
-codLocal = [[1, 2], [2, 3], [3, 0], [4, 5], [5, 2], [6, 5]]
+    ["Comida", "Mostaza", "Bermudez", "A"],
+    ["Perfumeria", "Lata", "Perez", "B"],
+] """
+
+
+codLocal = [[0 for _ in range(0, 2)] for _ in range(0, 50)]
 
 
 def busqueda_dicotomica(array, buscar):
@@ -86,17 +90,25 @@ def falsoburbuja(array, col):
                 array[j] = aux
 
 
-def falsaburbujaBI(datos_local, datos_usuario):
-    for i in range(0, len(datos_local) - 1):
-        for j in range(1, len(datos_local) - 1):
-            if datos_local[i][0] < datos_local[j][0]:
-                auxLocal = datos_local[i]
-                auxCliente = datos_usuario[i][0]
-                datos_local[i][0] = datos_local[j]
-                datos_usuario[i] = datos_usuario[j][0]
-                datos_local[j][0] = auxLocal
-                datos_usuario[j][0] = auxCliente
-    return datos_usuario
+def burbuja_indices(arreglo, codigos):
+    n = len(arreglo)
+    swapped = True
+
+    while swapped:
+        swapped = False
+        for i in range(n - 1):
+            if arreglo[i][1] > arreglo[i + 1][1]:
+                # Ordenar el arreglo de strings
+                arregloAux = arreglo[i]
+                arreglo[i] = arreglo[i + 1]
+                arreglo[i + 1] = arregloAux
+                # Ordenar el arreglo de índices correspondientes
+
+                codigosAux = codigos[i]
+                codigos[i] = codigos[i + 1]
+                codigos[i + 1] = codigosAux
+
+                swapped = True
 
 
 def busqueda_secuencialBI(array, f, buscar):
@@ -108,7 +120,7 @@ def busqueda_secuencialBI(array, f, buscar):
     while index <= limit and not (encontrado):
         if array[index][f] == buscar:
             encontrado = True
-            data = ["True", array[index], index]
+            data = ["True", array[index]]
         else:
             index += 1
     return data
@@ -392,18 +404,17 @@ def validacion_rubro(rubro, resultado):
 
 
 def validacion_usuario(usuario):
-    try:
-        if usuarios[usuario - 1][2] == "duenoLocal":
-            return usuarios[usuario - 1][1]
-    except:
-        print(
+    if usuarios[usuario - 1][2] == "duenoLocal":
+        return usuarios[usuario - 1][1]
+    else:
+        print_advertencia(
             "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
         )
         opc = yes_no()
         while opc == "Y":
             return validacion_usuario(
                 validar_tipo(
-                    input("Ingrese nuevamente un codigo de usuario: "), int, 0, 6
+                    input("Ingrese nuevamente un codigo de usuario: "), int, 1, 6
                 )
             )
         return False
@@ -428,7 +439,9 @@ def mod_locales():
                 )
                 print_completado("Guardado Exitoso")
             case "2":
-                datosLocal[cod - 1][1] = input("ingrese el nombre del local: ")
+                datosLocal[cod - 1][1] = validar_nombre(
+                    input("ingrese el nombre del local: ")
+                )
                 print_completado("Guardado Existoso")
             case "3":
                 datosLocal[cod - 1][2] = input("ingrese la ubicacion del local: ")
@@ -462,10 +475,9 @@ def crear_locales():
             datosLocal[opcion - 1][2] = ubicacionlocal
             datosLocal[opcion - 1][3] = "A"
             codLocal[opcion - 1][1] = codusuario
-    else:
-        print("el codigo ingresado pertenece a un local existente")
-    print(datosLocal)
-    print(codLocal)
+    print_aviso("Volvera al menu principal")
+    input("")
+        
 
 
 def elim_locales():
@@ -484,73 +496,81 @@ def elim_locales():
     clear("pause")
 
 
-
+""" Fomat y Ljust """
 
 
 def mostrar_locales_desc():
+    """Rubro con menos locales o mas"""
     aux = [["indumentaria", 0], ["comida", 0], ["perfumeria", 0]]
+    locales_activos = [["" for _ in range(0, 4)] for _ in range(0, 50)]
     for i in range(0, len(datosLocal)):
-        if datosLocal[i][0] == "indumentaria":
+        if datosLocal[i][0].lower() == "indumentaria" and datosLocal[i][3] == "A":
             aux[0][1] += 1
-        elif datosLocal[i][0] == "comida":
+        elif datosLocal[i][0].lower() == "comida" and datosLocal[i][3] == "A":
             aux[1][1] += 1
-        elif datosLocal[i][0] == "perfumeria":
+        elif datosLocal[i][0].lower() == "perfumeria" and datosLocal[i][3] == "A":
             aux[2][1] += 1
-    mayor(aux)
+    falsoburbuja(aux, 1)
 
-
-def mayor(rubros):
-    falsoburbuja(rubros, 1)
-    print(rubros, "Este tiene que venir ordeando")
-    for t in range(0, len(rubros)):
-        for i in range(0, len(datosLocal)):
-            if rubros[t][0] == datosLocal[i][0]:
-                """print(datosLocal[i][0])"""
-
-
-""" 
-def imprimir_datos(datos):
-    # Encabezados
-    print(
-        "{: <8} {: >7} {: >11} {: >8}".format(" Rubro", "Nombre", "Ubicacion", "Estado")
-    )
-    print("{:-<7} {:-<8} {:->11} {:->8}".format("", "", "", ""))
-    # Datos
-    for nombre, rubro, ubicacion, estado in datos:
-        print("{: <12} {: >10} {: >10.2f}".format(rubro, nombre, ubicacion, estado))
- """
+    """ Guarda Locales en otro array ya ordenados para la muestra """
+    dat_loc_ord = datosLocal[:]
+    falsoburbuja(dat_loc_ord, 0)
+    index = 0
+    for l in range(0, 3):
+        for k in range(0, len(datosLocal)):
+            if dat_loc_ord[k][0].lower() == aux[l][0] and dat_loc_ord[k][3] != "B":
+                locales_activos[index] = dat_loc_ord[k]
+                index += 1
 
 
 def mapa_locales():
-    map = [[0] * 5 for i in range(10)]
-    falsoburbuja(datosLocal, codLocal)
-    for p in range(50):
-        for i in range(5):
-            for j in range(10):
-                map[i][j] = codLocal[p][1]
-    return map
+    burbuja_indices(datosLocal, codLocal)
+    """ print(datosLocal, codLocal) """
+    num_columnas = 5
+    for fila in range(10):
+        for columna in range(5):
+            indice = fila * num_columnas + columna
+            """ print(f"+-+\n|{codLocal[indice][0]}|") """
+
+    a = ""
+    techo = "+--"
+    techo = techo * 5 + "+"
+    casa = " "
+    print(codLocal)
+    print(techo)
+    for i in range(0, 5):
+        a += "|" + str(codLocal[i][0]) + "|"
+    print(a)
+    for i in range(1, 50):
+        if (i % 5) == 0:
+            print(techo)
+            print(a)
 
 
 def gestion_locales():
-    clear("cls")
-    print(
-        """
-          a) Crear locales 
+    a = """
+        a) Crear locales 
         \nb) Modificar local 
         \nc) Eliminar local 
         \nd) Mapa de locales   
         \ne) Volver"""
-    )
-    opcion = validar_tipo(input("Ingrese una opcion "), str, "a", "c")
-    match opcion:
-        case "a":
-            crear_locales()
-        case "b":
-            mod_locales()
-        case "c":
-            elim_locales()
-        case "d":
-            mapa_locales()
+    clear("cls")
+    print(a)
+    opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
+    while opcion != "e":
+        match opcion:
+            case "a":
+                crear_locales()
+            case "b":
+                mod_locales()
+            case "c":
+                elim_locales()
+            case "d":
+                mapa_locales()
+            case "e":
+                print("Volviste al menu principal")
+        print(a)
+        opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
     clear("cls")
 
 
@@ -565,4 +585,4 @@ def inicio():
             cliente_menu()
 
 
-crear_locales()
+inicio()
