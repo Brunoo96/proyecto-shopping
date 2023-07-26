@@ -19,9 +19,9 @@ print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
 clear = lambda x: os.system(x)
 
 
-""" codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
+codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
 for i in range(50):
-    codLocal[i][0] = i + 1 """
+    codLocal[i][0] = i + 1
 # codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
 
 
@@ -54,7 +54,7 @@ usuarios = [
 ] """
 
 
-codLocal = [[0 for _ in range(0, 2)] for _ in range(0, 50)]
+# codLocal = [[0 for _ in range(0, 2)] for _ in range(0, 50)]
 
 
 def busqueda_dicotomica(array, buscar):
@@ -91,24 +91,23 @@ def falsoburbuja(array, col):
 
 
 def burbuja_indices(arreglo, codigos):
-    n = len(arreglo)
-    swapped = True
+    datosLocalesaux = arreglo[:]
+    codLocalesAux = codigos[:]
+    n = len(arreglo) - 1
+    for i in range(n):
+        for j in range(i + 1):
+            if datosLocalesaux[i][1] < datosLocalesaux[j][1]:
+                # Ordenar el datosLocalesaux de strings
+                auxdat = datosLocalesaux[i]
+                datosLocalesaux[i] = datosLocalesaux[j]
+                datosLocalesaux[j] = auxdat
 
-    while swapped:
-        swapped = False
-        for i in range(n - 1):
-            if arreglo[i][1] > arreglo[i + 1][1]:
-                # Ordenar el arreglo de strings
-                arregloAux = arreglo[i]
-                arreglo[i] = arreglo[i + 1]
-                arreglo[i + 1] = arregloAux
                 # Ordenar el arreglo de índices correspondientes
-
-                codigosAux = codigos[i]
-                codigos[i] = codigos[i + 1]
-                codigos[i + 1] = codigosAux
-
-                swapped = True
+                auxcod = codLocalesAux[i]
+                codLocalesAux[i] = codLocalesAux[j]
+                codLocalesAux[j] = auxcod
+    print(codLocalesAux)
+    return codLocalesAux
 
 
 def busqueda_secuencialBI(array, f, buscar):
@@ -405,7 +404,7 @@ def validacion_rubro(rubro, resultado):
 
 def validacion_usuario(usuario):
     if usuarios[usuario - 1][2] == "duenoLocal":
-        return usuarios[usuario - 1][1]
+        return codUsuario[usuario - 1]
     else:
         print_advertencia(
             "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
@@ -471,13 +470,13 @@ def crear_locales():
         ubicacionlocal = input("ingrese la ubicacion del local: ")
         if codusuario:
             datosLocal[opcion - 1][0] = rubrolocal
-            datosLocal[opcion - 1][1] = nombrelocal
-            datosLocal[opcion - 1][2] = ubicacionlocal
+            datosLocal[opcion - 1][1] = nombrelocal.lower()
+            datosLocal[opcion - 1][2] = ubicacionlocal.lower()
             datosLocal[opcion - 1][3] = "A"
             codLocal[opcion - 1][1] = codusuario
+
     print_aviso("Volvera al menu principal")
     input("")
-        
 
 
 def elim_locales():
@@ -524,32 +523,26 @@ def mostrar_locales_desc():
 
 
 def mapa_locales():
-    burbuja_indices(datosLocal, codLocal)
-    """ print(datosLocal, codLocal) """
-    num_columnas = 5
-    for fila in range(10):
-        for columna in range(5):
-            indice = fila * num_columnas + columna
-            """ print(f"+-+\n|{codLocal[indice][0]}|") """
-
-    a = ""
-    techo = "+--"
+    ordenado = burbuja_indices(datosLocal, codLocal)
+    print(ordenado)
+    techo = "+---"
     techo = techo * 5 + "+"
-    casa = " "
-    print(codLocal)
     print(techo)
-    for i in range(0, 5):
-        a += "|" + str(codLocal[i][0]) + "|"
-    print(a)
-    for i in range(1, 50):
-        if (i % 5) == 0:
-            print(techo)
-            print(a)
+    aux = 0
+    for t in range(0, 10):
+        index = 0
+        a = ""
+        while index < 5:
+            index += 1
+            a += "|" + str(ordenado[aux][1]) + "|"
+            aux += 1
+        print(a)
+        print(techo)
 
 
 def gestion_locales():
     a = """
-        a) Crear locales 
+        \na) Crear locales 
         \nb) Modificar local 
         \nc) Eliminar local 
         \nd) Mapa de locales   
