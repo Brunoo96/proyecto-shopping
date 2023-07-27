@@ -21,7 +21,7 @@ clear = lambda x: os.system(x)
 
 codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
 for i in range(50):
-    codLocal[i][0] = i + 1
+   codLocal[i][0] = i + 1
 # codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
 
 
@@ -40,21 +40,6 @@ usuarios = [
     ["LocalD@shopping.com", "DDD123", "duenoLocal"],
     ["LocalE@shopping.com", "XDXDXD", "Cliente"],
 ]
-
-
-""" datosLocal = [
-    ["Indumentaria", "Paz", "Rosario", "A"],
-    ["Perfumeria", "Letra", "Bermudez", "A"],
-    ["", "", "", ""],
-    ["Indumentaria", "Per", "Perez", "A"],
-    ["Comida", "McDonalds", "Alvarez", "A"],
-    ["Indumentaria", "Nike", "Rosario", "A"],
-    ["Comida", "Mostaza", "Bermudez", "A"],
-    ["Perfumeria", "Lata", "Perez", "B"],
-] """
-
-
-# codLocal = [[0 for _ in range(0, 2)] for _ in range(0, 50)]
 
 
 def busqueda_dicotomica(array, buscar):
@@ -90,13 +75,14 @@ def falsoburbuja(array, col):
                 array[j] = aux
 
 
+
 def burbuja_indices(arreglo, codigos):
     datosLocalesaux = arreglo[:]
     codLocalesAux = codigos[:]
     n = len(arreglo) - 1
     for i in range(n):
         for j in range(i + 1):
-            if datosLocalesaux[i][1] < datosLocalesaux[j][1]:
+            if datosLocalesaux[i][1] > datosLocalesaux[j][1]:
                 # Ordenar el datosLocalesaux de strings
                 auxdat = datosLocalesaux[i]
                 datosLocalesaux[i] = datosLocalesaux[j]
@@ -106,13 +92,15 @@ def burbuja_indices(arreglo, codigos):
                 auxcod = codLocalesAux[i]
                 codLocalesAux[i] = codLocalesAux[j]
                 codLocalesAux[j] = auxcod
-    print(codLocalesAux)
+
+    """ print(codLocalesAux,datosLocalesaux,"Esto es burbuja indice") """
     return codLocalesAux
+
 
 
 def busqueda_secuencialBI(array, f, buscar):
     """Ingresar array a buscar , Fila ,Elemento a buscar en el array"""
-    data = ["False", [], []]
+    data = ["False", []]
     index = 0
     limit = len(array) - 1
     encontrado = False
@@ -124,8 +112,6 @@ def busqueda_secuencialBI(array, f, buscar):
             index += 1
     return data
 
-
-""" def buscar_indice(array, elemento): """
 
 
 def busqueda_secuencialUNI(array, buscar):
@@ -227,7 +213,7 @@ def validar_nombre(nombre):
         return validar_nombre(input("Ingrese el nombre nuevamente: "))
 
 
-def validar_ingreso():
+def validar_ingreso():    
     email = input("Ingrese email: ")
     [true, data] = validar_email(email)
     if true == "True":
@@ -242,7 +228,10 @@ def validar_ingreso():
             else:
                 return user[1]
         print_advertencia("Has superado el limite de intentos saliendo del programa...")
-        input("Apretar cualquier tecla para cerrar")
+        print("")
+        print_aviso("Apretar cualquier tecla para cerrar")
+    
+
 
 
 # prints
@@ -349,6 +338,7 @@ def gestion_novedades():
 
 
 def admin_menu():
+    clear("cls")
     print(
         """Menú principal:
           \n1. Gestión de locales
@@ -386,12 +376,13 @@ def mostrar_locales():
 
 
 def validacion_rubro(rubro, resultado):
+    rubro=str(rubro)
     rubros = ["indumentaria", "perfumeria", "comida"]
     resultado = resultado
     index = 0
     bandera = False
     while not (bandera) and index < 3:
-        if rubro == rubros[index]:
+        if rubro.lower() == rubros[index]:
             bandera = True
             resultado = rubros[index]
         else:
@@ -456,17 +447,23 @@ def mod_locales():
 
 # [[rubro], [nombre], [ubicacion], estado]
 def crear_locales():
+    clear("cls")
     opcion = validar_tipo(
         input("Ingrese codigo del local : "), int, 1, 50
     )  # codLocal[i][0]
 
+    print("")
+
     codusuario = validacion_usuario(
         validar_tipo(input("Ingrese codigo de usuario "), int, 1, 6)
     )  # codLocal[i][1]
-
+    
+    print("")
     if datosLocal[opcion - 1][2] == "" and codusuario:
         rubrolocal = validacion_rubro(input("ingrese el rubro del local: "), "")
+        print("")
         nombrelocal = validar_nombre(input("ingrese el nombre del local: "))
+        print("")
         ubicacionlocal = input("ingrese la ubicacion del local: ")
         if codusuario:
             datosLocal[opcion - 1][0] = rubrolocal
@@ -474,9 +471,9 @@ def crear_locales():
             datosLocal[opcion - 1][2] = ubicacionlocal.lower()
             datosLocal[opcion - 1][3] = "A"
             codLocal[opcion - 1][1] = codusuario
-
     print_aviso("Volvera al menu principal")
     input("")
+    clear("cls")
 
 
 def elim_locales():
@@ -523,8 +520,8 @@ def mostrar_locales_desc():
 
 
 def mapa_locales():
+    clear("cls")
     ordenado = burbuja_indices(datosLocal, codLocal)
-    print(ordenado)
     techo = "+---"
     techo = techo * 5 + "+"
     print(techo)
@@ -538,10 +535,13 @@ def mapa_locales():
             aux += 1
         print(a)
         print(techo)
+    clear("pause")
+    clear("cls")
 
 
 def gestion_locales():
     a = """
+        \nHa ingresado en el menu de Gestion de Locales
         \na) Crear locales 
         \nb) Modificar local 
         \nc) Eliminar local 
