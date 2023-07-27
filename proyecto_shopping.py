@@ -233,6 +233,41 @@ def validar_ingreso():
     
 
 
+def validacion_rubro(rubro, resultado):
+    rubro=str(rubro)
+    rubros = ["indumentaria", "perfumeria", "comida"]
+    resultado = resultado
+    index = 0
+    bandera = False
+    while not (bandera) and index < 3:
+        if rubro.lower() == rubros[index]:
+            bandera = True
+            resultado = rubros[index]
+        else:
+            index += 1
+    if bandera:
+        return resultado
+    else:
+        return validacion_rubro(input("Ingrese un rubro correcto: "), resultado)
+
+
+def validacion_usuario(usuario):
+    if usuarios[usuario - 1][2] == "duenoLocal":
+        return codUsuario[usuario - 1]
+    else:
+        print_advertencia(
+            "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
+        )
+        opc = yes_no()
+        while opc == "Y":
+            return validacion_usuario(
+                validar_tipo(
+                    input("Ingrese nuevamente un codigo de usuario: "), int, 1, 6
+                )
+            )
+        return False
+
+
 
 # prints
 def construccion():
@@ -336,32 +371,6 @@ def gestion_novedades():
 
 # funciones
 
-
-def admin_menu():
-    clear("cls")
-    print(
-        """Menú principal:
-          \n1. Gestión de locales
-          \n2. Crear cuentas de dueños de locales
-          \n3. Aprobar / Denegar solicitud de descuento
-          \n4. Gestión de novedades
-          \n5. Reporte de utilización de descuentos
-          \n0. Salir"""
-    )
-    opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
-    match opcion:
-        case 1:
-            gestion_locales()
-        case 2:
-            """crear_cuenta()"""
-        case 3:
-            """solic_descuento()"""
-        case 4:
-            gestion_novedades()
-        case 5:
-            """reporte_descuentos()"""
-
-
 def mostrar_locales():
     print("¿desea ver los locales actuales?")
     opcion = yes_no()
@@ -375,40 +384,58 @@ def mostrar_locales():
                     print(f"rubro: {datosLocal[i][2]}")
 
 
-def validacion_rubro(rubro, resultado):
-    rubro=str(rubro)
-    rubros = ["indumentaria", "perfumeria", "comida"]
-    resultado = resultado
-    index = 0
-    bandera = False
-    while not (bandera) and index < 3:
-        if rubro.lower() == rubros[index]:
-            bandera = True
-            resultado = rubros[index]
-        else:
+def mostrar_locales_desc():
+    """Rubro con menos locales o mas"""
+    aux = [["indumentaria", 0], ["comida", 0], ["perfumeria", 0]]
+    locales_activos = [["" for _ in range(0, 4)] for _ in range(0, 50)]
+    for i in range(0, len(datosLocal)):
+        if datosLocal[i][0].lower() == "indumentaria" and datosLocal[i][3] == "A":
+            aux[0][1] += 1
+        elif datosLocal[i][0].lower() == "comida" and datosLocal[i][3] == "A":
+            aux[1][1] += 1
+        elif datosLocal[i][0].lower() == "perfumeria" and datosLocal[i][3] == "A":
+            aux[2][1] += 1
+    falsoburbuja(aux, 1)
+ 
+    print(f"{str(aux[0][0]).capitalize()} - {aux[0][1]} | {str(aux[1][0]).capitalize()} - {aux[1][1]} | {str(aux[2][0]).capitalize()} - {aux[2][1]}")
+   
+
+
+
+def mapa_locales():
+    clear("cls")
+    ordenado = burbuja_indices(datosLocal, codLocal)
+    techo = "+---"
+    techo = techo * 5 + "+"
+    print(techo)
+    aux = 0
+    for t in range(0, 10):
+        index = 0
+        a = ""
+        while index < 5:
             index += 1
-    if bandera:
-        return resultado
+            a += "|" + str(ordenado[aux][1]) + "|"
+            aux += 1
+        print(a)
+        print(techo)
+    clear("pause")
+    clear("cls")
+
+
+def elim_locales():
+    opcion = validar_tipo(
+        input("ingrese el codigo del local que desea eliminar: "), int, 0, 50
+    )
+    print_advertencia("El local va ser dado de baja esta seguro de este movimiento? ")
+
+    opcyesno = yes_no()
+    # codigo = [codLocal, indice]
+    if opcyesno == "Y":
+        print_aviso(f"el local {opcion} se ha dado de baja")
+        datosLocal[opcion - 1][3] = "B"
     else:
-        return validacion_rubro(input("Ingrese un rubro correcto: "), resultado)
-
-
-def validacion_usuario(usuario):
-    if usuarios[usuario - 1][2] == "duenoLocal":
-        return codUsuario[usuario - 1]
-    else:
-        print_advertencia(
-            "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
-        )
-        opc = yes_no()
-        while opc == "Y":
-            return validacion_usuario(
-                validar_tipo(
-                    input("Ingrese nuevamente un codigo de usuario: "), int, 1, 6
-                )
-            )
-        return False
-
+        print_aviso("El local no se dio de baja")
+    clear("pause")
 
 # [[rubro], [nombre], [ubicacion], estado]
 def mod_locales():
@@ -444,7 +471,6 @@ def mod_locales():
     clear("pause")
     clear("cls")
 
-
 # [[rubro], [nombre], [ubicacion], estado]
 def crear_locales():
     clear("cls")
@@ -476,70 +502,9 @@ def crear_locales():
     clear("cls")
 
 
-def elim_locales():
-    opcion = validar_tipo(
-        input("ingrese el codigo del local que desea eliminar: "), int, 0, 50
-    )
-    print_advertencia("El local va ser dado de baja esta seguro de este movimiento? ")
-
-    opcyesno = yes_no()
-    # codigo = [codLocal, indice]
-    if opcyesno == "Y":
-        print_aviso(f"el local {opcion} se ha dado de baja")
-        datosLocal[opcion - 1][3] = "B"
-    else:
-        print_aviso("El local no se dio de baja")
-    clear("pause")
-
-
-""" Fomat y Ljust """
-
-
-def mostrar_locales_desc():
-    """Rubro con menos locales o mas"""
-    aux = [["indumentaria", 0], ["comida", 0], ["perfumeria", 0]]
-    locales_activos = [["" for _ in range(0, 4)] for _ in range(0, 50)]
-    for i in range(0, len(datosLocal)):
-        if datosLocal[i][0].lower() == "indumentaria" and datosLocal[i][3] == "A":
-            aux[0][1] += 1
-        elif datosLocal[i][0].lower() == "comida" and datosLocal[i][3] == "A":
-            aux[1][1] += 1
-        elif datosLocal[i][0].lower() == "perfumeria" and datosLocal[i][3] == "A":
-            aux[2][1] += 1
-    falsoburbuja(aux, 1)
-
-    """ Guarda Locales en otro array ya ordenados para la muestra """
-    dat_loc_ord = datosLocal[:]
-    falsoburbuja(dat_loc_ord, 0)
-    index = 0
-    for l in range(0, 3):
-        for k in range(0, len(datosLocal)):
-            if dat_loc_ord[k][0].lower() == aux[l][0] and dat_loc_ord[k][3] != "B":
-                locales_activos[index] = dat_loc_ord[k]
-                index += 1
-
-
-def mapa_locales():
-    clear("cls")
-    ordenado = burbuja_indices(datosLocal, codLocal)
-    techo = "+---"
-    techo = techo * 5 + "+"
-    print(techo)
-    aux = 0
-    for t in range(0, 10):
-        index = 0
-        a = ""
-        while index < 5:
-            index += 1
-            a += "|" + str(ordenado[aux][1]) + "|"
-            aux += 1
-        print(a)
-        print(techo)
-    clear("pause")
-    clear("cls")
-
-
 def gestion_locales():
+    clear("cls")
+    mostrar_locales_desc()
     a = """
         \nHa ingresado en el menu de Gestion de Locales
         \na) Crear locales 
@@ -547,7 +512,6 @@ def gestion_locales():
         \nc) Eliminar local 
         \nd) Mapa de locales   
         \ne) Volver"""
-    clear("cls")
     print(a)
     opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
     while opcion != "e":
@@ -562,9 +526,36 @@ def gestion_locales():
                 mapa_locales()
             case "e":
                 print("Volviste al menu principal")
+        mostrar_locales_desc()
         print(a)
         opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
     clear("cls")
+
+
+
+def admin_menu():
+    clear("cls")
+    print(
+        """Menú principal:
+          \n1. Gestión de locales
+          \n2. Crear cuentas de dueños de locales
+          \n3. Aprobar / Denegar solicitud de descuento
+          \n4. Gestión de novedades
+          \n5. Reporte de utilización de descuentos
+          \n0. Salir"""
+    )
+    opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
+    match opcion:
+        case 1:
+            gestion_locales()
+        case 2:
+            """crear_cuenta()"""
+        case 3:
+            """solic_descuento()"""
+        case 4:
+            gestion_novedades()
+        case 5:
+            """reporte_descuentos()"""
 
 
 def inicio():
