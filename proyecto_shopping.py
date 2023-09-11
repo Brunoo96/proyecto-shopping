@@ -1,9 +1,149 @@
 import os
 import getpass
-import colorama
-from colorama import Fore, Back, Style
 
-colorama.init()
+# import colorama
+# from colorama import Fore, Back, Style
+import pickle
+import datetime
+import io
+import time
+
+
+class Usuario:
+    def __init__(self):
+        self.codUsuario = 0
+        self.nombreUsuario = ""
+        self.claveUsuario = ""
+        self.tipoUsuario = ""
+
+
+class Locales:
+    def __init__(self):
+        self.codLocal = 0
+        self.nombreLocal = ""
+        self.UbicacionLocal = ""
+        self.rubroLocal = ""
+        codUsuario = 0
+        estado = "A"
+
+
+class Promociones:
+    def __init__(self):
+        self.codPromo = 0
+        self.textoPromo = ""
+        self.fechaDesdePromo = ""
+        self.HastaPromo = ""
+        self.diasSemana = [0] * 6
+        self.estado = ""
+        self.codLocal = 0
+
+
+class Novedades:
+    def __init__(self):
+        self.codNovedad = 0
+        self.textoNovedad = ""
+        self.fechaDesdeNovedad = ""
+        self.fechaHastaNovedad = ""
+        self.tipoUsuario = ""
+        self.estado = "A"
+
+
+class Uso_Promociones:
+    def __init__(self) -> None:
+        self.codCliente = 0
+        self.codPromo = 0
+        self.fechaUsoPromo = ""
+
+
+# colorama.init()
+
+
+def abrirarchivos(nombre):
+    if os.path.exists(nombre):
+        archivo_logico = open(nombre, "r+b")
+    else:
+        archivo_logico = open(nombre, "w+b")
+    return archivo_logico
+
+
+def cerrar_archivos():
+    print("Cerrando programa..")
+    ARCHIVO_LOGICO_USUARIOS.close()
+    ARCHIVO_LOGICO_LOCALES.close()
+    ARCHIVO_LOGICO_PROMOCIONES.close()
+    ARCHIVO_LOGICO_USOPROMOCIONES.close()
+    ARCHIVO_LOGICO_NOVEDADES.close()
+
+
+# Archivos fisicos
+ARCHIVO_FISICO_USUARIOS = os.getcwd() + "/usuarios.dat"
+ARCHIVO_FISICO_LOCALES = os.getcwd() + "/locales.dat"
+ARCHIVO_FISICO_PROMOCIONES = os.getcwd() + "/promociones.dat"
+ARCHIVO_FISICO_USOPROMOCIONES = os.getcwd() + "/usopromociones.dat"
+ARCHIVO_FISICO_NOVEDADES = os.getcwd() + "/novedades.dat"
+
+# Archivos logicos
+
+ARCHIVO_LOGICO_USUARIOS = abrirarchivos(ARCHIVO_FISICO_USUARIOS)
+ARCHIVO_LOGICO_LOCALES = abrirarchivos(ARCHIVO_FISICO_LOCALES)
+ARCHIVO_LOGICO_PROMOCIONES = abrirarchivos(ARCHIVO_FISICO_PROMOCIONES)
+ARCHIVO_LOGICO_USOPROMOCIONES = abrirarchivos(ARCHIVO_FISICO_USOPROMOCIONES)
+ARCHIVO_LOGICO_NOVEDADES = abrirarchivos(ARCHIVO_FISICO_NOVEDADES)
+
+
+def lj_usuarios(x):
+    x.codUsuario = str(x.codUsuario).ljust(8)
+    x.nombreUsuario = str(x.nombreUsuario).ljust(100)
+    x.claveUsuario = str(x.claveUsuario).ljust(8)
+    x.tipoUsuario = str(x.tipoUsuario).ljust(20)
+
+
+def lj_locales(x):
+    x.codLocal = str(x.codLocal).ljust(8)
+    x.nombreLocal = str(x.nombreLocal).ljust(50)
+    x.ubicacionLocal = str(x.rubroLocal).ljust(50)
+    x.rubroLocal = str(x.rubroLocal).ljust(50)
+    x.codUsuario = str(x.codUsuario).ljust(80)
+    x.estado = str(x.estado).ljust(2)
+
+
+def lj_promociones(x):
+    x.codPromo = str(x.codPromo).ljust(8)
+    x.textoPromo = str(x.textoPromo).ljust(200)
+    x.fechaDesdePromo = str(x.fechaDesdePromo).ljust()
+    x.HastaPromo = str(x.HastaPromo).ljust()
+    x.diasSemana = [0] * 6
+    x.estado = str(x.estado).ljust(10)
+    x.codLocal = str(x.codLocal).ljust(8)
+
+
+def lj_uso_promociones(x):
+    x.codCliente = str(x.codCliente).ljust()
+    x.codPromo = str(x.codPromo).ljust()
+    x.fechaUsoPromo = str(x.fechaUsoPromo).ljust()
+
+
+def ljnovedades(x):
+    x.codNovedad = str(x.codNovedad).ljust()
+    x.textoNovedad = str(x.textoNovedad).ljust()
+    x.fechaDesdeNovedad = str(x.fechaDesdeNovedad).ljust()
+    x.fechaHastaNovedad = str(x.fechaHastaNovedad).ljust()
+    x.tipoUsuario = str(x.tipoUsuario).ljust()
+    x.estado = str(x.estado).ljust()
+
+
+def date():
+    flag = True
+    while flag:
+        try:
+            fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
+            datetime.datetime.strptime(fecha, "%d/%m/%Y")
+            print("Fecha valida")
+            flag = False
+        except ValueError:
+            print("Fecha invalida")
+    dia, mes, anio = fecha.split("/")
+    return fecha
 
 
 # Define constant
@@ -12,121 +152,67 @@ cont_perfumeria = 0
 cont_comida = 0
 
 """ STATUS """
-print_advertencia = lambda txt: print(Fore.RED + txt, Fore.RESET)
-print_completado = lambda txt: print(Fore.GREEN + txt, Fore.RESET)
-print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
+# print_advertencia = lambda txt: print(Fore.RED + txt, Fore.RESET)
+# print_completado = lambda txt: print(Fore.GREEN + txt, Fore.RESET)
+# print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
+
+
+def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO):
+    """(DATA - ARCHIVO_FISICO - ARCHIVO_LOGICO)"""
+    t = os.path.getsize(ARCHIVO_FISICO)
+
+    ARCHIVO_LOGICO.seek(t)
+
+    pickle.dump(data, ARCHIVO_LOGICO)
+
+    ARCHIVO_LOGICO.flush()
+
+
+def verificar_admin():
+    tamaño = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
+    if tamaño == 0:
+        administrador = Usuario()
+        administrador.codUsuario = 1
+        administrador.nombreUsuario = "admin@shopping.com"
+        administrador.claveUsuario = 12345
+        administrador.tipoUsuario = "administrador"
+        lj_usuarios(administrador)
+        savedata(administrador, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS)
+
+
+def busquedasecuencial(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO, callback):
+    tamañoarchivo = os.path.getsize(ARCHIVO_FISICO)
+    ARCHIVO_LOGICO.seek(0)
+    encontrado = False
+
+    while ARCHIVO_LOGICO.tell() < tamañoarchivo and encontrado == False:
+        posicion = ARCHIVO_LOGICO.tell()
+        regtemporal = pickle.load(ARCHIVO_LOGICO)
+        encontrado = callback(regtemporal)
+
+    return encontrado
+
+
+def ordenarempleado(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO):
+    ARCHIVO_LOGICO.seek(0)
+    aux = pickle.load(ARCHIVO_LOGICO)
+    Tamregistro = ARCHIVO_LOGICO.tell()
+    tamarchivo = os.path.getsize(ARCHIVO_FISICO)
+    cantreg = int(tamarchivo / Tamregistro)
+    for i in range(0, cantreg - 1):
+        for j in range(i + 1, cantreg):
+            ARCHIVO_LOGICO.seek(i * cantreg, 0)
+            auxi = pickle.load(ARCHIVO_LOGICO)
+            ARCHIVO_LOGICO.seek(j * cantreg, 0)
+            auxj = pickle.load(ARCHIVO_LOGICO)
+            if auxi.legajo > auxj.legajo:
+                ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
+                pickle.dump(auxi, ARCHIVO_LOGICO)
+                ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
+                pickle.dump(auxj, ARCHIVO_LOGICO)
+
 
 clear = lambda x: os.system(x)
-
-
-codLocal = [[0 for _ in range(2)] for _ in range(0, 50)]
-for i in range(50):
-   codLocal[i][0] = i + 1
-# codLocal = [[codigo de local1, codigo de usuario],[codigo de local2, codigo de usuario]]
-
-
-datosLocal = [
-    ["" for _ in range(0, 4)] for _ in range(0, 50)
-]  # [[rubro], [nombre], [ubicacion], estado]
-""" Metodos de array """
-
-
-codUsuario = [1, 2, 3, 4, 5, 6]
-usuarios = [
-    ["admin@shopping.com", "12345", "Administrador"],
-    ["LocalA@shopping.com", "AAA123", "duenoLocal"],
-    ["LocalB@shopping.com", "BBB123", "duenoLocal"],
-    ["LocalC@shopping.com", "CCC123", "duenoLocal"],
-    ["LocalD@shopping.com", "DDD123", "duenoLocal"],
-    ["LocalE@shopping.com", "XDXDXD", "Cliente"],
-]
-
-
-def busqueda_dicotomica(array, buscar):
-    """Llamar primero a falso burbuja e ingresar dos parametros el primero array a a ordenar y segundo valor a buscar"""
-    col = 1
-    comienzo = 0
-    fin = len(array) - 1
-    encontro = False
-    while not (encontro) and comienzo <= fin:
-        medio = (comienzo + fin) // 2
-        if buscar == array[medio][col]:
-            encontro = True
-        elif buscar < array[medio][col]:
-            fin = medio - 1
-        else:
-            comienzo = medio + 1
-    if encontro:
-        """print("Encontro:", array[medio][col])"""
-        return True
-    else:
-        """print("No encontro")"""
-        return False
-
-
-def falsoburbuja(array, col):
-    """Paramaetros :Array(Ordenar), Columna(Ordenar)"""
-    limit = len(array) - 1
-    for i in range(0, limit):
-        for j in range(i + 1, limit + 1):
-            if array[i][col] > array[j][col]:
-                aux = array[i]
-                array[i] = array[j]
-                array[j] = aux
-
-
-
-def burbuja_indices(arreglo, codigos):
-    datosLocalesaux = arreglo[:]
-    codLocalesAux = codigos[:]
-    n = len(arreglo) - 1
-    for i in range(n):
-        for j in range(i + 1):
-            if datosLocalesaux[i][1] > datosLocalesaux[j][1]:
-                # Ordenar el datosLocalesaux de strings
-                auxdat = datosLocalesaux[i]
-                datosLocalesaux[i] = datosLocalesaux[j]
-                datosLocalesaux[j] = auxdat
-
-                # Ordenar el arreglo de índices correspondientes
-                auxcod = codLocalesAux[i]
-                codLocalesAux[i] = codLocalesAux[j]
-                codLocalesAux[j] = auxcod
-
-    """ print(codLocalesAux,datosLocalesaux,"Esto es burbuja indice") """
-    return codLocalesAux
-
-
-
-def busqueda_secuencialBI(array, f, buscar):
-    """Ingresar array a buscar , Fila ,Elemento a buscar en el array"""
-    data = ["False", []]
-    index = 0
-    limit = len(array) - 1
-    encontrado = False
-    while index <= limit and not (encontrado):
-        if array[index][f] == buscar:
-            encontrado = True
-            data = ["True", array[index]]
-        else:
-            index += 1
-    return data
-
-
-
-def busqueda_secuencialUNI(array, buscar):
-    """Ingresar array a buscar , Fila ,Elemento a buscar en el array"""
-    data = ["False", []]
-    index = 0
-    limit = len(array) - 1
-    encontrado = False
-    while index <= limit and not (encontrado):
-        if array[index] == buscar:
-            encontrado = True
-            data = ["True", array]
-        else:
-            index += 1
-    return data
 
 
 # funcion de ingreso
@@ -164,6 +250,12 @@ def validar_clave(val):
     return aux
 
 
+def inputclass(opc: str, length: int):
+    while not (len(opc) < length):
+        opc = input(f"Error, Ingrese nuevamente (hasta {length} caracteres): ")
+    return opc.ljust(length)
+
+
 def validar_dominio(email):
     data = ["", ""]
     tipos = ["@shopping.com"]
@@ -183,58 +275,8 @@ def validar_dominio(email):
     return data
 
 
-def validar_email(email):
-    emailpass = "False"
-    while emailpass == "False" and email != "0":
-        [STATUS, MSG] = validar_dominio(email)
-        if STATUS == "True":
-            [true, data] = busqueda_secuencialBI(usuarios, 0, email)
-            # data = ['usuario', 'clave','tipo']
-            if true == "True":
-                emailpass = "True"
-            else:
-                print_advertencia("Este email no existe")
-                email = input("")
-        else:
-            clear("cls")
-            print_advertencia(MSG)
-            email = input("")
-    return [emailpass, data]
-
-
-def validar_nombre(nombre):
-    aux = datosLocal[:]
-    falsoburbuja(aux, 1)
-    encontro = busqueda_dicotomica(aux, nombre)
-    if not (encontro):
-        return nombre
-    else:
-        print("el nombre está ocupado")
-        return validar_nombre(input("Ingrese el nombre nuevamente: "))
-
-
-def validar_ingreso():    
-    email = input("Ingrese email: ")
-    [true, data] = validar_email(email)
-    if true == "True":
-        i = 0
-        password = " "
-        while i <= 2 and password != data[1]:
-            password = input(f"Ingrese contraseña, tiene {3-i} intentos : ")
-            user = busqueda_secuencialUNI(data, password)
-            # clave = "password"
-            if user[0] != "True":
-                i += 1
-            else:
-                return user[1]
-        print_advertencia("Has superado el limite de intentos saliendo del programa...")
-        print("")
-        print_aviso("Apretar cualquier tecla para cerrar")
-    
-
-
 def validacion_rubro(rubro, resultado):
-    rubro=str(rubro)
+    rubro = str(rubro)
     rubros = ["indumentaria", "perfumeria", "comida"]
     resultado = resultado
     index = 0
@@ -251,22 +293,12 @@ def validacion_rubro(rubro, resultado):
         return validacion_rubro(input("Ingrese un rubro correcto: "), resultado)
 
 
-def validacion_usuario(usuario):
-    if usuarios[usuario - 1][2] == "duenoLocal":
-        return codUsuario[usuario - 1]
-    else:
-        print_advertencia(
-            "El usuario ingresado no es un Dueño de local quisieras ingregar otro usuario?"
-        )
-        opc = yes_no()
-        while opc == "Y":
-            return validacion_usuario(
-                validar_tipo(
-                    input("Ingrese nuevamente un codigo de usuario: "), int, 1, 6
-                )
-            )
-        return False
+def autoincremental():
+    t = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
+    ARCHIVO_LOGICO_USUARIOS.seek(-t, 2)
+    regtemporal = pickle.load(ARCHIVO_LOGICO_USUARIOS)
 
+    return int(regtemporal.codUsuario) + 1
 
 
 # prints
@@ -319,18 +351,6 @@ def owner_1():
     clear("pause")
 
 
-def cliente_menu():
-    print(
-        """Menú principal:
-        \n1. Registrarme
-        \n2. Buscar descuentos en locales
-        \n3. Solicitar descuento
-        \n4. Ver novedades
-        \n0. Salir"""
-    )
-    clear("pause")
-
-
 def mostrar_menu():
     print(
         """Menú principal:
@@ -369,38 +389,6 @@ def gestion_novedades():
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# funciones
-
-def mostrar_locales():
-    print("¿desea ver los locales actuales?")
-    opcion = yes_no()
-    match opcion:
-        case "Y":
-            for i in range(50):
-                if datosLocal[i][2] != 0:
-                    print(f"código: {codLocal}")
-                    print(f"nombre: {datosLocal[i][0]}")
-                    print(f"ubicacion: {datosLocal[i][1]}")
-                    print(f"rubro: {datosLocal[i][2]}")
-
-
-def mostrar_locales_desc():
-    """Rubro con menos locales o mas"""
-    aux = [["indumentaria", 0], ["comida", 0], ["perfumeria", 0]]
-    locales_activos = [["" for _ in range(0, 4)] for _ in range(0, 50)]
-    for i in range(0, len(datosLocal)):
-        if datosLocal[i][0].lower() == "indumentaria" and datosLocal[i][3] == "A":
-            aux[0][1] += 1
-        elif datosLocal[i][0].lower() == "comida" and datosLocal[i][3] == "A":
-            aux[1][1] += 1
-        elif datosLocal[i][0].lower() == "perfumeria" and datosLocal[i][3] == "A":
-            aux[2][1] += 1
-    falsoburbuja(aux, 1)
- 
-    print(f"{str(aux[0][0]).capitalize()} - {aux[0][1]} | {str(aux[1][0]).capitalize()} - {aux[1][1]} | {str(aux[2][0]).capitalize()} - {aux[2][1]}")
-   
-
-
 
 def mapa_locales():
     clear("cls")
@@ -419,86 +407,6 @@ def mapa_locales():
         print(a)
         print(techo)
     clear("pause")
-    clear("cls")
-
-
-def elim_locales():
-    opcion = validar_tipo(
-        input("ingrese el codigo del local que desea eliminar: "), int, 0, 50
-    )
-    print_advertencia("El local va ser dado de baja esta seguro de este movimiento? ")
-
-    opcyesno = yes_no()
-    # codigo = [codLocal, indice]
-    if opcyesno == "Y":
-        print_aviso(f"el local {opcion} se ha dado de baja")
-        datosLocal[opcion - 1][3] = "B"
-    else:
-        print_aviso("El local no se dio de baja")
-    clear("pause")
-
-# [[rubro], [nombre], [ubicacion], estado]
-def mod_locales():
-    bool = True
-    aux = "Y"
-
-    cod = validar_tipo(
-        input("ingrese el codigo del local que desea modificar: "), int, 1, 50
-    )
-
-    while bool and aux == "Y":
-        print("Que desea modificar ? \n 1-Rubro \n 2-Nombre \n 3-Ubicacion")
-        opcion = input("")
-        match opcion:
-            case "1":
-                datosLocal[cod - 1][0] = validacion_rubro(
-                    input("ingrese el rubro del local: "), ""
-                )
-                print_completado("Guardado Exitoso")
-            case "2":
-                datosLocal[cod - 1][1] = validar_nombre(
-                    input("ingrese el nombre del local: ")
-                )
-                print_completado("Guardado Existoso")
-            case "3":
-                datosLocal[cod - 1][2] = input("ingrese la ubicacion del local: ")
-                print_completado("Guardado Existoso")
-            case _:
-                print("asd")
-        print("desea modificar algo más?")
-        aux = yes_no()
-    print(datosLocal)
-    clear("pause")
-    clear("cls")
-
-# [[rubro], [nombre], [ubicacion], estado]
-def crear_locales():
-    clear("cls")
-    opcion = validar_tipo(
-        input("Ingrese codigo del local : "), int, 1, 50
-    )  # codLocal[i][0]
-
-    print("")
-
-    codusuario = validacion_usuario(
-        validar_tipo(input("Ingrese codigo de usuario "), int, 1, 6)
-    )  # codLocal[i][1]
-    
-    print("")
-    if datosLocal[opcion - 1][2] == "" and codusuario:
-        rubrolocal = validacion_rubro(input("ingrese el rubro del local: "), "")
-        print("")
-        nombrelocal = validar_nombre(input("ingrese el nombre del local: "))
-        print("")
-        ubicacionlocal = input("ingrese la ubicacion del local: ")
-        if codusuario:
-            datosLocal[opcion - 1][0] = rubrolocal
-            datosLocal[opcion - 1][1] = nombrelocal.lower()
-            datosLocal[opcion - 1][2] = ubicacionlocal.lower()
-            datosLocal[opcion - 1][3] = "A"
-            codLocal[opcion - 1][1] = codusuario
-    print_aviso("Volvera al menu principal")
-    input("")
     clear("cls")
 
 
@@ -532,7 +440,6 @@ def gestion_locales():
     clear("cls")
 
 
-
 def admin_menu():
     clear("cls")
     print(
@@ -549,24 +456,133 @@ def admin_menu():
         case 1:
             gestion_locales()
         case 2:
-            """crear_cuenta()"""
+            crear_cuenta()
         case 3:
-            """solic_descuento()"""
+            solic_descuento()
         case 4:
             gestion_novedades()
         case 5:
             """reporte_descuentos()"""
 
 
-def inicio():
-    data = validar_ingreso()
-    match data[2]:
-        case "Administrador":
+def cliente_menu():
+    os.system("cls")
+    a = "Menú principal:\n1. Buscar descuentos en locales\n2. Solicitar descuento\n3. Ver novedades\n0. Salir"
+    print(a)
+    opc = validar_tipo(input("Ingrese una opción: "), int, 0, 4)
+    while opc != 0:
+        match (opc):
+            case (1):
+                buscar_descuentos_locales()
+            case (2):
+                solicitar_descuento()
+            case (3):
+                print("Está en chapin")
+            case (0):
+                print("Ha salido")
+        print(a)
+        opc = validar_tipo(input("Ingrese una opción: "), int, 0, 4)
+    clear("pause")
+
+
+def registrarse_cliente():
+    clear("cls")
+    cliente = Usuario()
+    encontrado = True
+
+    while encontrado:
+        email = inputclass(input("Ingrese email [0-Cancelar]:  "), 100)
+        if email.strip() == "0":
+            return
+
+        password = inputclass(
+            getpass.getpass("Ingrese su contraseña [0-Cancelar]: "), 8
+        )
+
+        if password.strip() == "0":
+            return
+
+        def searchUser(regtemporal):
+            if (
+                str(regtemporal.nombreUsuario).strip() == email.strip()
+                and str(regtemporal.claveUsuario).strip() == password.strip()
+            ):
+                return True
+            else:
+                return False
+
+        encontrado = busquedasecuencial(
+            ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, searchUser
+        )
+
+    cliente.nombreUsuario = email
+    cliente.claveUsuario = password
+    cliente.codUsuario = autoincremental()
+    cliente.tipoUsuario = "cliente"
+
+    savedata(cliente, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS)
+    print("Guardado existoso")
+
+    os.system("pause")
+    os.system("cls")
+
+    cliente_menu()
+
+
+def usuario_registrado():
+    clear("cls")
+
+    email = inputclass(input("Ingrese email: "), 100)
+    password = inputclass(getpass.getpass("Ingrese su contraseña: "), 8)
+
+    def login(regtemporal):
+        if (
+            str(regtemporal.nombreUsuario).strip() == email.strip()
+            and str(regtemporal.claveUsuario).strip() == password.strip()
+        ):
+            return regtemporal.tipoUsuario
+        else:
+            return False
+
+    tipo = busquedasecuencial(ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, login)
+
+    # Hacer menu para la proxima
+    match (tipo):
+        case ("administrador"):
             admin_menu()
-        case "DuenoLocal":
+        case ("duenocliente"):
             owner_menu()
-        case "Cliente":
+        case ("cliente"):
             cliente_menu()
+        case (_):
+            return "Error"
 
 
-inicio()
+def menuprincipal():
+    os.system("cls")
+    # Verifica si el adminsitrador fue creado al iniciar el programa por primera vez
+    menu = "Menú principal\n_____________________________\n1. Ingresar con usuario registrado\n2. Registrarse como cliente\n3. Salir"
+    verificar_admin()
+
+    print(menu)
+    opc = validar_tipo(input("Ingrese una opción: "), int, 1, 3)
+    while opc != 3:
+        match (opc):
+            case (1):
+                usuario_registrado()
+            case (2):
+                registrarse_cliente()
+            case (3):
+                cerrar_archivos()
+            case (_):
+                return "Error inesperado"
+        os.system("cls")
+        print(menu)
+        opc = validar_tipo(input("Ingrese una opción: "), int, 1, 3)
+        
+    cerrar_archivos()
+
+    os.system("pause")
+
+
+menuprincipal()
