@@ -218,8 +218,10 @@ clear = lambda x: os.system(x)
 # funcion de ingreso
 def yes_no():
     opcion = input("ingrese una opcion (y/n): ").upper()
+    print("")
     while opcion != "Y" and opcion != "N":
         opcion = input("error, ingrese una opcion valida (y/n): ").upper()
+        print("")
     return opcion
 
 
@@ -300,79 +302,31 @@ def autoincremental():
 
     return int(regtemporal.codUsuario) + 1
 
-
-# prints
+# --------------------------------------- Construccion
 def construccion():
-    print("en construcción...")
-    clear("pause")
-
-
-def admin_1():
-    print(
-        """a) Crear locales 
-            \nb) Modificar local 
-            \nc) Eliminar local 
-            \nd) Mapa de locales   
-            \ne) Volver"""
-    )
-    clear("pause")
-
-
-def admin_4():
-    print(
-        """Gestion de novedades:
-          \na. Crear novedades
-          \nb. Modificar novedad
-          \nc. Eliminar novedad
-          \nd. Ver reporte de novedades
-          \ne. Volver"""
-    )
-    clear("pause")
-
-
-def owner_menu():
-    print(
-        """Menú principal:
-          \n1. Gestión de descuentos
-          \n2. Aceptar / Rechazar pedido de descuento
-          \n3.  Reporte de uso de descuentos 
-          \n0. Salir"""
-    )
-    clear("pause")
-
-
-def owner_1():
-    print(
-        """a)  Crear descuento para mi local 
-          \nb)  Modificar descuento de mi local 
-          \nc) Eliminar descuento de mi local 
-          \nd)  Volver"""
-    )
+    clear("cls")
+    print_aviso("en construcción...")
+    print("")
     clear("pause")
 
 
 def mostrar_menu():
     print(
         """Menú principal:
-        \n1. Gestión de locales
-        \n2. Crear cuentas de dueños de locales
-        \n3. Aprobar / Denegar solicitud de descuento
-        \n4. Gestión de novedades
-        \n5. Reporte de utilización de descuentos
-        \n0. Salir"""
+          \n1. Gestión de descuentos
+            a) Crear descuento para mi local
+            b) Modificar descuento de mi local
+            c) Eliminar descuento de mi local
+            d) Volver
+          \n2. Aceptar / Rechazar pedido de descuento
+          \n3. Reporte de uso de descuentos 
+          \n0. Salir"""
     )
+
     clear("pause")
 
 
-def menu_gestion_locales():
-    print(
-        """menú de gestión de locales:
-        \na. Crear locales
-        \nb. Modificar local
-        \nc. Eliminar local
-        \nd. Volver"""
-    )
-    clear("pause")
+# ---------------------------------------- Funciones del Administrador
 
 
 def gestion_novedades():
@@ -441,16 +395,16 @@ def gestion_locales():
 
 
 def admin_menu():
-    clear("cls")
-    print(
-        """Menú principal:
+    auxp = """Menú principal:
           \n1. Gestión de locales
           \n2. Crear cuentas de dueños de locales
           \n3. Aprobar / Denegar solicitud de descuento
           \n4. Gestión de novedades
           \n5. Reporte de utilización de descuentos
           \n0. Salir"""
-    )
+    clear("cls")
+    print(auxp)
+    print("")
     opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
     match opcion:
         case 1:
