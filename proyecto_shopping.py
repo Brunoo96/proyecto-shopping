@@ -122,8 +122,8 @@ def lj_locales(x):
 def lj_promociones(x):
     x.codPromo = str(x.codPromo).ljust(8)
     x.textoPromo = str(x.textoPromo).ljust(200)
-    x.fechaDesdePromo = str(x.fechaDesdePromo).ljust()
-    x.HastaPromo = str(x.HastaPromo).ljust()
+    x.fechaDesdePromo = str(x.fechaDesdePromo).ljust(10)
+    x.HastaPromo = str(x.HastaPromo).ljust(10)
     x.diasSemana = [0] * 6
     x.estado = str(x.estado).ljust(10)
     x.codLocal = str(x.codLocal).ljust(8)
@@ -180,6 +180,20 @@ def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, forma
         print("Error inesperado")
 
 
+def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatter):
+    try:
+        formatter(data)
+
+        ARCHIVO_LOGICO.seek(PosPuntero)
+
+        pickle.dump(data, ARCHIVO_LOGICO)
+
+        ARCHIVO_LOGICO.flush()
+
+    except:
+        print("Error inesperado")
+
+
 def verificar_admin():
     tamaño = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
     if tamaño == 0:
@@ -205,7 +219,7 @@ def busquedasecuencial(
     while ARCHIVO_LOGICO.tell() < tamañoarchivo and encontrado == False:
         posicion = ARCHIVO_LOGICO.tell()
         regtemporal = pickle.load(ARCHIVO_LOGICO)
-        encontrado = callback(regtemporal)
+        encontrado = callback(regtemporal, posicion)
 
     return encontrado
 
@@ -298,7 +312,7 @@ def locales():
 
 
 # funcion de ingreso
-def yes_no():
+def yes_no() -> str:
     opcion = input("ingrese una opcion (y/n): ").upper()
     print("")
     while opcion != "Y" and opcion != "N":
@@ -307,7 +321,7 @@ def yes_no():
     return opcion
 
 
-def validar_tipo(opc, tipo, desde, hasta):
+def validar_tipo(opc, tipo, desde: int, hasta: int):
     try:
         opc = tipo(opc)
         while not (opc >= desde and opc <= hasta):
@@ -359,14 +373,14 @@ def validar_dominio(email):
     return data
 
 
-def validacion_rubro(rubro):
+def validacion_rubro(rubro: str):
     rubro = str(rubro)
     while (
         rubro.lower() != "perfumeria"
         and rubro.lower() != "comida"
-        and rubro.lower() != "perfumeria"
+        and rubro.lower() != "indumentaria"
     ):
-        rubro = input("Ingrese un rubro correcto [indumentaria,comida,perfumeria]")
+        rubro = input("Ingrese un rubro correcto [indumentaria,comida,perfumeria]: ")
     return rubro
 
 
@@ -407,42 +421,28 @@ def mostrar_menu():
     clear("pause")
 
 
-# ---------------------------------------- Funciones del Administrador
+# ---------------------------------------- Funciones del Administrador -------------------------------- #
 
 
-def gestion_novedades():
-    print(
-        """Gestion de novedades:
-        \na. Crear novedades
-        \nb. Modificar novedad
-        \nc. Eliminar novedad
-        \nd. Ver reporte de novedades 
-        \ne. Volver"""
-    )
-    clear("pause")
+def admin_menu():
+    os.system("cls")
 
+    auxp = "Menú principal:\n1. Gestión de locales\n2. Crear cuentas de dueños de locales\n3. Aprobar / Denegar solicitud de descuento\n4. Gestión de novedades\n5. Reporte de utilización de descuentos\n0. Salir"
 
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    print(auxp)
 
-
-def mapa_locales():
-    clear("cls")
-    ordenado = burbuja_indices(datosLocal, codLocal)
-    techo = "+---"
-    techo = techo * 5 + "+"
-    print(techo)
-    aux = 0
-    for t in range(0, 10):
-        index = 0
-        a = ""
-        while index < 5:
-            index += 1
-            a += "|" + str(ordenado[aux][1]) + "|"
-            aux += 1
-        print(a)
-        print(techo)
-    clear("pause")
-    clear("cls")
+    opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
+    match opcion:
+        case 1:
+            gestion_locales()
+        case 2:
+            crear_cuenta_dueno()
+        case 3:
+            aprobar_denegar_descuento()
+        case 4:
+            gestion_novedades()
+        case 5:
+            """reporte_descuentos()"""
 
 
 def gestion_locales():
@@ -479,7 +479,7 @@ def crear_locales():
     def autoincrementarlocal(regtemp):
         return int(regtemp.codLocal) + 1
 
-    def searchUserDueñoLocal(regtemporal):
+    def searchUserDueñoLocal(regtemporal, p):
         if (
             str(codduenolocal).split() == str(regtemporal.codUsuario).split()
             and str(regtemporal.tipoUsuario).split() == "duenolocal"
@@ -516,47 +516,121 @@ def crear_locales():
         NuevoLocal.codUsuario = codduenolocal
 
 
-def aprobar_denegar_descuento():
-    regPendientes = []
+def pantalla_mod_locales(regtemp: Locales):
+    def pantalla_local():
+        print(
+            f"\nNombre: {regtemp.nombreLocal} ",
+            f"\nUbicacion: {regtemp.UbicacionLocal}",
+            f"\nRubro: {regtemp.rubroLocal}",
+        )
 
-    def SearchState(regtemp):
-        if regtemp.estado == "pendiente":
-            regPendientes.append(regtemp)
+    clear("cls")
+    opcScreen = "Y"
 
-    busquedasecuencial(
-        ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, SearchState
+    pantalla_local()
+
+    opc = input(
+        "\n1-Nombre\n2-Ubicacion\n3-Rubro\n0-Salir\nIngrese lo que desea modificar: "
+    )
+    while opcScreen == "Y":
+        match (opc):
+            case ("1"):
+                nombre = inputclass(input("Ingrese el nuevo nombre del local: "), 50)
+                regtemp.nombreLocal = nombre
+                print("Desea modificar otro campo del local?")
+                opcScreen = yes_no()
+            case ("2"):
+                ubicacion = inputclass(
+                    input("Ingrese la nueva ubicación del local: "), 50
+                )
+                regtemp.UbicacionLocal = ubicacion
+                print("Desea modificar otro campo del local?")
+                opcScreen = yes_no()
+            case ("3"):
+                rubro = inputclass(
+                    validacion_rubro(input("Ingrese el nuevo rubro: ")), 50
+                )
+                regtemp.rubroLocal = rubro
+                print("Desea modificar otro campo del local?")
+                opcScreen = yes_no()
+            case ("0"):
+                return
+
+        clear("cls")
+        if opcScreen == "Y":
+            pantalla_local()
+            opc = input(
+                "\n1-Nombre\n2-Ubicacion\n3-Rubro\nIngrese lo que desea modificar: "
+            )
+
+    clear("cls")
+    print("Su local actualizado")
+    pantalla_local()
+
+
+""" Parametrizar esta funcion """
+
+
+def mod_locales():
+    def searchcod(regtemp, pos):
+        if str(codLocal) == str(regtemp.codLocal).strip():
+            return [regtemp, pos]
+        else:
+            return False
+
+    codLocal = validar_tipo(
+        input("Ingrese un código de local [0 para salir]: "), int, 0, 99999
     )
 
+    if codLocal == 0:
+        return
 
-def admin_menu():
-    os.system("cls")
+    localInfo = busquedasecuencial(
+        ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchcod
+    )
+    local = localInfo[0]
+    localPuntero = localInfo[1]
 
-    auxp = "Menú principal:\n1. Gestión de locales\n2. Crear cuentas de dueños de locales\n3. Aprobar / Denegar solicitud de descuento\n4. Gestión de novedades\n5. Reporte de utilización de descuentos\n0. Salir"
+    while not (local) and codLocal != 0:
+        codLocal = validar_tipo(
+            "No se encontró ningún local con ese código, ingrese nuevamente [0 para salir]: ",
+            int,
+            0,
+            99999,
+        )
+        localInfo = busquedasecuencial(
+            ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchcod
+        )
+        local = localInfo[0]
+        localPuntero = localInfo[1]
 
-    print(auxp)
+    if codLocal == 0:
+        return
 
-    opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
-    match opcion:
-        case 1:
-            gestion_locales()
-        case 2:
-            crear_cuentaa()
-        case 3:
-            aprobar_denegar_descuento()
-        case 4:
-            gestion_novedades()
-        case 5:
-            """reporte_descuentos()"""
+    pantalla_mod_locales(local)
+    print("\nDesea guardar estos cambios ? [Y-Si, N-No]\n")
+    opc = yes_no()
+    if opc == "Y":
+        updatedata(
+            local,
+            ARCHIVO_LOGICO_LOCALES,
+            localPuntero,
+            lj_locales,
+        )
+        print("Guardado exitoso UwU 😊")
 
 
-def crear_cuentaa():
+mod_locales()
+
+
+def crear_cuenta_dueno():
     nuevoUsuario = Usuario()
     encontro = True
 
     def autoincrementarcliente(regtem) -> int:
         return int(regtem.codUsuario) + 1
 
-    def searchUser(regtemporal):
+    def searchUser(regtemporal, p):
         if str(regtemporal.nombreUsuario).strip() == emailUsuario.strip():
             return True
         else:
@@ -583,6 +657,104 @@ def crear_cuentaa():
     savedata(
         nuevoUsuario, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, lj_usuarios
     )
+
+
+def test():
+    objetos = []
+    estados = ["pendiente", "rechazado", "aprobado"]
+    for _ in range(20):
+        objeto = {
+            "precio": random.randint(1, 100),  # Precio aleatorio entre 1 y 100
+            "estado": random.choice(estados),  # Estado aleatorio de la lista de estados
+        }
+        objetos.append(objeto)
+
+    return objetos
+
+
+""" def busquedasecuencialtest(array,callback):
+    index = 0
+    encontrado = False
+    while index < len(array) and encontrado == False:
+        callback()
+        index += 1 """
+
+
+def mostrar_descuentos_pendientes(registro):
+    longitud = len(registro)
+    if longitud > 0:
+        for i in range(0, longitud):
+            print(registro[i].codLocal)
+            print(registro[i].estado)
+            print(registro[i].codPromo)
+    else:
+        print("No hay archivos")
+
+
+def aprobar_denegar_descuento():
+    regPendientes: list[Promociones] = []
+
+    def SearchState(regtemp, p):
+        if str(regtemp.estado).strip() == "pendiente":
+            regPendientes.append(regtemp)
+        return False
+
+    busquedasecuencial(
+        ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, SearchState
+    )
+
+    mostrar_descuentos_pendientes(regPendientes)
+
+    """ cod = input("Ingrese el cod de local que quiere aprobar/rechazar: ")
+    while  cod  != "*":
+        try:
+            cod = int(cod)
+            encontrado = False
+
+            for i in range (0,len(regPendientes)): 
+                if (cod == int(regPendientes[i].codLocal)):
+                    encontrado = True
+
+            if(encontrado):
+                busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, ModifyState)
+            
+        except:
+            cod = input("Ingrese el cod de local que quiere aprobar/rechazar correctamente: ") """
+
+
+def gestion_novedades():
+    print(
+        """Gestion de novedades:
+        \na. Crear novedades
+        \nb. Modificar novedad
+        \nc. Eliminar novedad
+        \nd. Ver reporte de novedades 
+        \ne. Volver"""
+    )
+    clear("pause")
+
+
+# --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
+
+
+def mapa_locales():
+    clear("cls")
+    ordenado = burbuja_indices(datosLocal, codLocal)
+    techo = "+---"
+    techo = techo * 5 + "+"
+    print(techo)
+    aux = 0
+    for t in range(0, 10):
+        index = 0
+        a = ""
+        while index < 5:
+            index += 1
+            a += "|" + str(ordenado[aux][1]) + "|"
+            aux += 1
+        print(a)
+        print(techo)
+    clear("pause")
+    clear("cls")
 
 
 def cliente_menu():
@@ -625,7 +797,7 @@ def registrarse_cliente():
         if password.strip() == "0":
             return
 
-        def searchUser(regtemporal):
+        def searchUser(regtemporal, p):
             if (
                 str(regtemporal.nombreUsuario).strip() == email.strip()
                 and str(regtemporal.claveUsuario).strip() == password.strip()
@@ -661,7 +833,7 @@ def usuario_registrado():
     email = inputclass(input("Ingrese email: "), 100)
     password = inputclass(getpass.getpass("Ingrese su contraseña: "), 8)
 
-    def login(regtemporal):
+    def login(regtemporal, p):
         print(regtemporal)
         if (
             str(regtemporal.nombreUsuario).strip() == email.strip()
@@ -683,6 +855,9 @@ def usuario_registrado():
             cliente_menu()
         case (_):
             return "Error"
+
+
+# --------------------------------------- Menu Principal ---------------------------------------------------------------------------------------------------------------------
 
 
 def menuprincipal():
@@ -712,7 +887,7 @@ def menuprincipal():
     os.system("pause")
 
 
-menuprincipal()
+# menuprincipal()
 
 
 def mostrarUsuarios():
@@ -724,3 +899,35 @@ def mostrarUsuarios():
 
 
 # mostrarUsuarios()
+
+
+""" def savePromos():
+    estados = ["pendiente", "rechazado", "aprobado"]
+    x = Promociones()
+    t = os.path.getsize(ARCHIVO_FISICO_PROMOCIONES)
+    ARCHIVO_LOGICO_PROMOCIONES.seek(0)
+    for i in range(0, 20):
+        x.codPromo = i
+        x.textoPromo = "null"
+        x.fechaDesdePromo = "null"
+        x.HastaPromo = "null"
+        x.diasSemana = [0] * 6
+        x.estado = random.choice(estados)
+        # estado (‘pendiente’, ‘aprobada’, ‘rechazada’) string(10)
+        x.codLocal = i
+        savedata(
+            x, ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, lj_promociones
+        )
+
+savePromos() """
+
+
+def mostrarLocales():
+    ARCHIVO_LOGICO_LOCALES.seek(0)
+    t = os.path.getsize(ARCHIVO_FISICO_LOCALES)
+    while ARCHIVO_LOGICO_LOCALES.tell() < t:
+        regTemp = pickle.load(ARCHIVO_LOGICO_LOCALES)
+        print(regTemp.codLocal)
+
+
+# mostrarLocales()
