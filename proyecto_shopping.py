@@ -4,10 +4,15 @@ import random
 import os
 import io
 import pickle
-
+import time
 import datetime
 
 # import colorama
+""" while True:   
+    size = os.get_terminal_size()
+    print(f"Ancho de la terminal: {size.columns} columnas")
+    print(f"Alto de la terminal: {size.lines} filas")
+ """
 
 # from colorama import Fore, Back, Style
 
@@ -181,7 +186,6 @@ def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, forma
     except:
         print("Error inesperado")
 
-
 def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatter):
     try:
         formatter(data)
@@ -195,6 +199,19 @@ def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatt
     except:
         print("Error inesperado")
 
+def pantalla_locales(locales:list[Locales]):
+    lenght = len(locales)
+    if(lenght >0):
+        for i in range(0,lenght):
+            print(
+                    f"\nCódigo de Local: {locales[i].codLocal} ",
+                    f"\nNombre: {locales[i].nombreLocal} ",
+                    f"\nUbicacion: {locales[i].UbicacionLocal}",
+                    f"\nRubro: {locales[i].rubroLocal}",
+                    f"\nEstado: {locales[i].estado}"
+                )
+    else:
+        print("No hay locales")
 
 def verificar_admin():
     tamaño = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
@@ -210,7 +227,6 @@ def verificar_admin():
             administrador, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, lj_usuarios
         )
 
-
 def busquedasecuencial(
     ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, callback
 ) :
@@ -225,25 +241,33 @@ def busquedasecuencial(
 
     return encontrado
 
+def mostrarLocales():
+    ARCHIVO_LOGICO_LOCALES.seek(0)
+    t = os.path.getsize(ARCHIVO_FISICO_LOCALES)
+    while ARCHIVO_LOGICO_LOCALES.tell() < t:
+        regTemp = pickle.load(ARCHIVO_LOGICO_LOCALES)
+        pantalla_locales([regTemp])
 
-def ordenarempleado(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
+def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callback):
+    def logica():
+        ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
+        pickle.dump(auxj, ARCHIVO_LOGICO)
+        ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
+        pickle.dump(auxi, ARCHIVO_LOGICO)
+
     ARCHIVO_LOGICO.seek(0)
     aux = pickle.load(ARCHIVO_LOGICO)
     Tamregistro = ARCHIVO_LOGICO.tell()
     tamarchivo = os.path.getsize(ARCHIVO_FISICO)
-    cantreg = int(tamarchivo / Tamregistro)
+    cantreg = int(tamarchivo // Tamregistro)
+    ARCHIVO_LOGICO.seek(0)
     for i in range(0, cantreg - 1):
         for j in range(i + 1, cantreg):
-            ARCHIVO_LOGICO.seek(i * cantreg, 0)
+            ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
             auxi = pickle.load(ARCHIVO_LOGICO)
-            ARCHIVO_LOGICO.seek(j * cantreg, 0)
+            ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
             auxj = pickle.load(ARCHIVO_LOGICO)
-            if auxi.legajo > auxj.legajo:
-                ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
-                pickle.dump(auxi, ARCHIVO_LOGICO)
-                ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
-                pickle.dump(auxj, ARCHIVO_LOGICO)
-
+            callback(auxi,auxj,logica)
 
 def busquedadico(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
     """Data:valor a entcontrar , ARCHIVO_LOGICO , ARCHIVO_FISICO"""
@@ -350,7 +374,7 @@ def validar_clave(val):
     return aux
 
 
-def inputclass(opc: str, length: int):
+def inputclass(opc: str, length: int) ->str:
     while not (len(opc) < length):
         opc = input(f"Error, Ingrese nuevamente (hasta {length} caracteres): ")
     return opc.ljust(length)
@@ -374,8 +398,7 @@ def validar_dominio(email):
         data = ["False", "Dominio inexistente, Ingrese un email valido"]
     return data
 
-
-def validacion_rubro(rubro: str):
+def validacion_rubro(rubro: str)-> str:
     rubro = str(rubro)
     while (
         rubro.lower() != "perfumeria"
@@ -384,7 +407,6 @@ def validacion_rubro(rubro: str):
     ):
         rubro = input("Ingrese un rubro correcto [indumentaria,comida,perfumeria]: ")
     return rubro
-
 
 def autoincremental(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO, callback):
     t = os.path.getsize(ARCHIVO_FISICO)
@@ -398,8 +420,31 @@ def autoincremental(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO, callback)
 
     return callback(regtemporal)
 
+def findBusinessA()-> list[Locales]:
+    localesActivos = []
+    
+    def Searchlocalactivo(regtemp,pos):
+        if str(regtemp.estado).strip() == 'A':
+            localesActivos.append(regtemp)
+            return False
 
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalactivo)
+
+    return localesActivos 
+
+def findBusiness() -> list[Locales]:
+    localesActivos = []
+
+    def Searchlocal(regtemp:Locales,pos):
+        localesActivos.append(regtemp)
+
+        return False
+        
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
+
+    return localesActivos 
 # --------------------------------------- Construccion
+
 def construccion():
     clear("cls")
     print_aviso("en construcción...")
@@ -422,15 +467,13 @@ def mostrar_menu():
 
     clear("pause")
 
-
 # ---------------------------------------- Funciones del Administrador -------------------------------- #
-
 
 def admin_menu():
     os.system("cls")
 
     auxp = "Menú principal:\n1. Gestión de locales\n2. Crear cuentas de dueños de locales\n3. Aprobar / Denegar solicitud de descuento\n4. Gestión de novedades\n5. Reporte de utilización de descuentos\n0. Salir"
-
+    
     print(auxp)
 
     opcion = validar_tipo(input("Ingrese una opcion "), int, 0, 5)
@@ -446,7 +489,7 @@ def admin_menu():
         case 5:
             """reporte_descuentos()"""
 
-
+# -------------------Gestion de locales
 def gestion_locales():
     clear("cls")
     a = """\nHa ingresado en el menu de Gestion de Locales\na) Crear locales \nb) Modificar local \nc) Eliminar local \nd) Mapa de locales   \ne) Volver"""
@@ -472,7 +515,7 @@ def gestion_locales():
         opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
     clear("cls")
 
-
+# ------------------ SubMenus de Gestion de locales
 def crear_locales():
     NuevoLocal = Locales()
     local = "-1"
@@ -517,7 +560,102 @@ def crear_locales():
         NuevoLocal.rubroLocal = rubro
         NuevoLocal.codUsuario = codduenolocal
 
+def mod_locales():
+    local:Locales
+    localPuntero:str
+    codLocal = -1
 
+    def searchBusiness(regtemp, pos):
+        if str(codLocal) == str(regtemp.codLocal).strip():
+            return [regtemp, pos]
+        else:
+            return False
+
+    locales = findBusiness()    
+
+
+    while codLocal != 0:
+        clear("cls")
+        
+        pantalla_locales(locales)
+        print("\nIngrese el local que desea modificar: \n")
+
+        codLocal = validar_tipo(input("Ingrese un código de local [0 para salir]: "), int, 0, len(locales)-1)
+        
+        [local,localPuntero] = busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchBusiness)
+        
+        if(local and codLocal != 0):
+
+            save=pantalla_mod_locales(local,locales)    
+
+            if(save):    
+                print("\nDesea guardar estos cambios ?\n")
+                opc = yes_no()
+                if opc == "Y":
+                    updatedata(
+                        local,
+                        ARCHIVO_LOGICO_LOCALES,
+                        localPuntero,
+                        lj_locales,
+                    )
+                    []
+                    print("Guardado exitoso UwU 😊")
+                    clear("pause")
+
+            else:
+                print("\nDesea ingresar otro local? \n")
+
+def elim_locales():    
+    clear("cls")
+    localesActivos = findBusinessA()    
+
+    pantalla_locales(localesActivos)
+         
+    bool = True
+
+    while bool:
+        cod = validar_tipo(input("Ingrese el código de local que desea dar de baja [0 para salir]: "),int,0,len(localesActivos))
+        if(cod !=  0): 
+            baja_logica(cod)
+        else:
+            bool= False
+
+def mapa_locales():
+    def comparision(auxi,auxj,logica):
+        if str(auxi.nombreLocal).strip() > str(auxj.nombreLocal).strip():
+            print(auxi.nombreLocal,auxj.nombreLocal )
+            logica()
+    
+    falso_burbuja(ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES,comparision)
+    mockup:Locales = Locales()
+
+    #Variable con todos los datos de los locales
+    locales = findBusiness()
+
+    #Variable con la longitud de los locales
+    locales_creados= len(locales)
+    
+    #Variable ya formateada con sus 50 locales para mostrar en el mapa de locales
+    locales_map:list[Locales] = [*locales,*[mockup]*(50-locales_creados)]
+    
+    techo= "+-+-+-+-+-+"
+    aux=techo+"\n"
+    
+    for i in range(1,len(locales_map)+1):
+        local= str(locales_map[i-1].codLocal).strip()
+        aux+=f"|{local}"
+        if ( i % 5 ==0):
+            aux+="|"
+            aux += "\n"+techo+"\n"
+    print(aux) 
+
+    clear("pause")
+    clear("cls")
+
+    
+
+mapa_locales()
+#---------------------------
 def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
     
     screen_locales = locales[int(str(local.codLocal).strip())]
@@ -535,6 +673,7 @@ def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
     
     pantalla_local()
 
+    
     opc = input(
         "\n1-Nombre\n2-Ubicacion\n3-Rubro\n4-Estado\n0-Salir\n\nIngrese lo que desea modificar:  "
     )
@@ -601,47 +740,7 @@ def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
     pantalla_local()
     return True
 
-   
-def findBusinessA():
-    localesActivos = []
-    
-    def Searchlocalactivo(regtemp,pos):
-        if str(regtemp.estado).strip() == 'A':
-            localesActivos.append(regtemp)
-            return False
-
-    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalactivo)
-
-    return localesActivos 
-
-def findBusiness() -> list[Locales]:
-    localesActivos = []
-
-    def Searchlocal(regtemp:Locales,pos):
-        localesActivos.append(regtemp)
-
-        return False
-        
-    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
-
-    return localesActivos 
-
-""" Funcion para parametrizar en editar locales  """
-def pantalla_locales(locales:list[Locales]):
-    lenght = len(locales)
-    if(lenght >0):
-        for i in range(0,lenght):
-            print(
-                    f"\nCódigo de Local: {locales[i].codLocal} ",
-                    f"\nNombre: {locales[i].nombreLocal} ",
-                    f"\nUbicacion: {locales[i].UbicacionLocal}",
-                    f"\nRubro: {locales[i].rubroLocal}",
-                    f"\nEstado: {locales[i].estado}"
-                )
-    else:
-        print("No hay locales")
-                        
-    
+                            
 def baja_logica(cod:str) :
     def Searchlocal(regtemp,pos):
         if str(regtemp.codLocal).strip() == str(cod) and str(regtemp.estado).strip()  == 'A':
@@ -667,73 +766,9 @@ def baja_logica(cod:str) :
             updatedata(Local,ARCHIVO_LOGICO_LOCALES,pos,lj_locales)
 
             print("Baja existosa")
-            
-
-    
-def elim_locales():    
-    clear("cls")
-    localesActivos = findBusinessA()    
-
-    pantalla_locales(localesActivos)
-         
-    bool = True
-
-    while bool:
-        cod = validar_tipo(input("Ingrese el código de local que desea dar de baja [0 para salir]: "),int,0,len(localesActivos))
-        if(cod !=  0): 
-            baja_logica(cod)
-        else:
-            bool= False
+                
+#---------------------------
         
-
-
-def mod_locales():
-    local:Locales
-    localPuntero:str
-    codLocal = -1
-
-    def searchBusiness(regtemp, pos):
-        if str(codLocal) == str(regtemp.codLocal).strip():
-            return [regtemp, pos]
-        else:
-            return False
-
-    locales = findBusiness()    
-
-
-    while codLocal != 0:
-        clear("cls")
-        
-        pantalla_locales(locales)
-        print("\nIngrese el local que desea modificar: \n")
-
-        codLocal = validar_tipo(input("Ingrese un código de local [0 para salir]: "), int, 0, len(locales)-1)
-        
-        [local,localPuntero] = busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchBusiness)
-        
-        if(local and codLocal != 0):
-
-            save=pantalla_mod_locales(local,locales)    
-
-            if(save):    
-                print("\nDesea guardar estos cambios ?\n")
-                opc = yes_no()
-                if opc == "Y":
-                    updatedata(
-                        local,
-                        ARCHIVO_LOGICO_LOCALES,
-                        localPuntero,
-                        lj_locales,
-                    )
-                    []
-                    print("Guardado exitoso UwU 😊")
-                    clear("pause")
-
-            else:
-                print("\nDesea ingresar otro local? \n")
-
-#elim_locales()
-mod_locales()
 
 def crear_cuenta_dueno():
     nuevoUsuario = Usuario()
@@ -770,7 +805,6 @@ def crear_cuenta_dueno():
         nuevoUsuario, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, lj_usuarios
     )
 
-
 def test():
     objetos = []
     estados = ["pendiente", "rechazado", "aprobado"]
@@ -782,14 +816,6 @@ def test():
         objetos.append(objeto)
 
     return objetos
-
-
-""" def busquedasecuencialtest(array,callback):
-    index = 0
-    encontrado = False
-    while index < len(array) and encontrado == False:
-        callback()
-        index += 1 """
 
 
 def mostrar_descuentos_pendientes(registro):
@@ -847,27 +873,6 @@ def gestion_novedades():
 
 
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
-
-
-def mapa_locales():
-    clear("cls")
-    ordenado = burbuja_indices(datosLocal, codLocal)
-    techo = "+---"
-    techo = techo * 5 + "+"
-    print(techo)
-    aux = 0
-    for t in range(0, 10):
-        index = 0
-        a = ""
-        while index < 5:
-            index += 1
-            a += "|" + str(ordenado[aux][1]) + "|"
-            aux += 1
-        print(a)
-        print(techo)
-    clear("pause")
-    clear("cls")
-
 
 def cliente_menu():
     os.system("cls")
@@ -1013,33 +1018,6 @@ def mostrarUsuarios():
 # mostrarUsuarios()
 
 
-""" def savePromos():
-    estados = ["pendiente", "rechazado", "aprobado"]
-    x = Promociones()
-    t = os.path.getsize(ARCHIVO_FISICO_PROMOCIONES)
-    ARCHIVO_LOGICO_PROMOCIONES.seek(0)
-    for i in range(0, 20):
-        x.codPromo = i
-        x.textoPromo = "null"
-        x.fechaDesdePromo = "null"
-        x.HastaPromo = "null"
-        x.diasSemana = [0] * 6
-        x.estado = random.choice(estados)
-        # estado (‘pendiente’, ‘aprobada’, ‘rechazada’) string(10)
-        x.codLocal = i
-        savedata(
-            x, ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, lj_promociones
-        )
-
-savePromos() """
 
 
-def mostrarLocales():
-    ARCHIVO_LOGICO_LOCALES.seek(0)
-    t = os.path.getsize(ARCHIVO_FISICO_LOCALES)
-    while ARCHIVO_LOGICO_LOCALES.tell() < t:
-        regTemp = pickle.load(ARCHIVO_LOGICO_LOCALES)
-        print(regTemp.codLocal)
 
-
-# mostrarLocales()
