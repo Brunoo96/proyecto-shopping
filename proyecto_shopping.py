@@ -15,12 +15,17 @@ import datetime
 # colorama.init()
 
 
-from faker import Faker
+#from faker import Faker
 
-from rich import print
+#from rich import print
 
 # print("Hello, [bold magenta]World[/bold magenta]!", ":vampire:", locals())
 
+# print_advertencia = lambda txt: print(Fore.RED + txt, Fore.RESET)
+# print_completado = lambda txt: print(Fore.GREEN + txt, Fore.RESET)
+# print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
+
+#-------------------------------------------------------Classes----------------------------------------------------
 
 class Usuario:
     def __init__(self):
@@ -70,6 +75,7 @@ class Uso_Promociones:
         self.fechaUsoPromo = ""
 
 
+#---------------------------------------Archivos----------------------------------------
 def abrirarchivos(nombre):
     if os.path.exists(nombre):
         archivo_logico = open(nombre, "r+b")
@@ -102,7 +108,7 @@ ARCHIVO_LOGICO_PROMOCIONES = abrirarchivos(ARCHIVO_FISICO_PROMOCIONES)
 ARCHIVO_LOGICO_USOPROMOCIONES = abrirarchivos(ARCHIVO_FISICO_USOPROMOCIONES)
 ARCHIVO_LOGICO_NOVEDADES = abrirarchivos(ARCHIVO_FISICO_NOVEDADES)
 
-
+#------------------------------------------------Formateadores-----------------------------------------------------------
 def lj_usuarios(x):
     x.codUsuario = str(x.codUsuario).ljust(8)
     x.nombreUsuario = str(x.nombreUsuario).ljust(100)
@@ -144,6 +150,8 @@ def ljnovedades(x):
     x.estado = str(x.estado).ljust()
 
 
+#-------------------------------- Funciones - Utils -----------------------------------------------
+
 def date():
     flag = True
     while flag:
@@ -156,12 +164,6 @@ def date():
             print("Fecha invalida")
     dia, mes, anio = fecha.split("/")
     return fecha
-
-
-# print_advertencia = lambda txt: print(Fore.RED + txt, Fore.RESET)
-# print_completado = lambda txt: print(Fore.GREEN + txt, Fore.RESET)
-# print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
-
 
 def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, formatter):
     """(DATA - ARCHIVO_FISICO - ARCHIVO_LOGICO)"""
@@ -211,7 +213,7 @@ def verificar_admin():
 
 def busquedasecuencial(
     ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, callback
-) -> bool:
+) :
     tamañoarchivo = os.path.getsize(ARCHIVO_FISICO)
     ARCHIVO_LOGICO.seek(0)
     encontrado = False
@@ -313,10 +315,10 @@ def locales():
 
 # funcion de ingreso
 def yes_no() -> str:
-    opcion = input("ingrese una opcion (y/n): ").upper()
+    opcion = input("ingrese una opcion [Y-Si, N-No]: ").upper()
     print("")
     while opcion != "Y" and opcion != "N":
-        opcion = input("error, ingrese una opcion valida (y/n): ").upper()
+        opcion = input("error, ingrese una opcion valida [Y-Si, N-No]: ").upper()
         print("")
     return opcion
 
@@ -516,112 +518,222 @@ def crear_locales():
         NuevoLocal.codUsuario = codduenolocal
 
 
-def pantalla_mod_locales(regtemp: Locales):
+def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
+    
+    screen_locales = locales[int(str(local.codLocal).strip())]
+    
     def pantalla_local():
         print(
-            f"\nNombre: {regtemp.nombreLocal} ",
-            f"\nUbicacion: {regtemp.UbicacionLocal}",
-            f"\nRubro: {regtemp.rubroLocal}",
+            f"\nNombre: {local.nombreLocal} ",
+            f"\nUbicacion: {local.UbicacionLocal}",
+            f"\nRubro: {local.rubroLocal}",
+            f"\nEstado: {local.estado}",
         )
 
     clear("cls")
     opcScreen = "Y"
-
+    
     pantalla_local()
 
     opc = input(
-        "\n1-Nombre\n2-Ubicacion\n3-Rubro\n0-Salir\nIngrese lo que desea modificar: "
+        "\n1-Nombre\n2-Ubicacion\n3-Rubro\n4-Estado\n0-Salir\n\nIngrese lo que desea modificar:  "
     )
+    
     while opcScreen == "Y":
         match (opc):
             case ("1"):
                 nombre = inputclass(input("Ingrese el nuevo nombre del local: "), 50)
-                regtemp.nombreLocal = nombre
+                local.nombreLocal = nombre
+                screen_locales.nombreLocal=nombre
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
             case ("2"):
                 ubicacion = inputclass(
                     input("Ingrese la nueva ubicación del local: "), 50
                 )
-                regtemp.UbicacionLocal = ubicacion
+                local.UbicacionLocal = ubicacion
+                screen_locales.UbicacionLocal=ubicacion
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
             case ("3"):
                 rubro = inputclass(
                     validacion_rubro(input("Ingrese el nuevo rubro: ")), 50
                 )
-                regtemp.rubroLocal = rubro
+                local.rubroLocal = rubro
+                screen_locales.rubroLocal= rubro
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
+            case("4"):
+                if(str(local.estado).strip() == "A"):
+                    print("Su estado ya esta dado de alta si quiere darlo de baja entre a la opcion 3-[Eliminar Locales]")
+                    clear("pause")
+                    print("Quieres ser redirigido?")
+                    opc = yes_no()                    
+                    if(opc =="Y"):
+                        baja_logica(str(local.codLocal).strip())          
+
+                        local.estado="B"
+                        screen_locales.estado = "B"
+                        
+                        clear("pause")
+                else:
+
+                    local.estado = "A"
+                    screen_locales.estado = "A"
+
+                    print("Estado actualizado")
+                    clear("pause")
+                    print("Desea modificar otro campo del local?")
+                    opcScreen = yes_no()
+
             case ("0"):
-                return
+                return False
 
         clear("cls")
         if opcScreen == "Y":
             pantalla_local()
             opc = input(
-                "\n1-Nombre\n2-Ubicacion\n3-Rubro\nIngrese lo que desea modificar: "
+                "\n1-Nombre\n2-Ubicacion\n3-Rubro\n4-Estado\n0-Salir\nIngrese lo que desea modificar: "
             )
-
+            
     clear("cls")
     print("Su local actualizado")
     pantalla_local()
+    return True
 
+   
+def findBusinessA():
+    localesActivos = []
+    
+    def Searchlocalactivo(regtemp,pos):
+        if str(regtemp.estado).strip() == 'A':
+            localesActivos.append(regtemp)
+            return False
 
-""" Parametrizar esta funcion """
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalactivo)
+
+    return localesActivos 
+
+def findBusiness() -> list[Locales]:
+    localesActivos = []
+
+    def Searchlocal(regtemp:Locales,pos):
+        localesActivos.append(regtemp)
+
+        return False
+        
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
+
+    return localesActivos 
+
+""" Funcion para parametrizar en editar locales  """
+def pantalla_locales(locales:list[Locales]):
+    lenght = len(locales)
+    if(lenght >0):
+        for i in range(0,lenght):
+            print(
+                    f"\nCódigo de Local: {locales[i].codLocal} ",
+                    f"\nNombre: {locales[i].nombreLocal} ",
+                    f"\nUbicacion: {locales[i].UbicacionLocal}",
+                    f"\nRubro: {locales[i].rubroLocal}",
+                    f"\nEstado: {locales[i].estado}"
+                )
+    else:
+        print("No hay locales")
+                        
+    
+def baja_logica(cod:str) :
+    def Searchlocal(regtemp,pos):
+        if str(regtemp.codLocal).strip() == str(cod) and str(regtemp.estado).strip()  == 'A':
+            return [regtemp,pos]
+        else:
+            return False
+        
+
+    Local:Locales
+    pos:int
+    [Local,pos] = busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
+    
+    if Local:
+        pantalla_locales([Local])
+
+        print("¿Está seguro que desea dar de baja este local?")
+    
+        opc = yes_no()
+
+        if opc == 'Y':
+            Local.estado="B"
+            
+            updatedata(Local,ARCHIVO_LOGICO_LOCALES,pos,lj_locales)
+
+            print("Baja existosa")
+            
+
+    
+def elim_locales():    
+    clear("cls")
+    localesActivos = findBusinessA()    
+
+    pantalla_locales(localesActivos)
+         
+    bool = True
+
+    while bool:
+        cod = validar_tipo(input("Ingrese el código de local que desea dar de baja [0 para salir]: "),int,0,len(localesActivos))
+        if(cod !=  0): 
+            baja_logica(cod)
+        else:
+            bool= False
+        
 
 
 def mod_locales():
-    def searchcod(regtemp, pos):
+    local:Locales
+    localPuntero:str
+    codLocal = -1
+
+    def searchBusiness(regtemp, pos):
         if str(codLocal) == str(regtemp.codLocal).strip():
             return [regtemp, pos]
         else:
             return False
 
-    codLocal = validar_tipo(
-        input("Ingrese un código de local [0 para salir]: "), int, 0, 99999
-    )
-
-    if codLocal == 0:
-        return
-
-    localInfo = busquedasecuencial(
-        ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchcod
-    )
-    local = localInfo[0]
-    localPuntero = localInfo[1]
-
-    while not (local) and codLocal != 0:
-        codLocal = validar_tipo(
-            "No se encontró ningún local con ese código, ingrese nuevamente [0 para salir]: ",
-            int,
-            0,
-            99999,
-        )
-        localInfo = busquedasecuencial(
-            ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchcod
-        )
-        local = localInfo[0]
-        localPuntero = localInfo[1]
-
-    if codLocal == 0:
-        return
-
-    pantalla_mod_locales(local)
-    print("\nDesea guardar estos cambios ? [Y-Si, N-No]\n")
-    opc = yes_no()
-    if opc == "Y":
-        updatedata(
-            local,
-            ARCHIVO_LOGICO_LOCALES,
-            localPuntero,
-            lj_locales,
-        )
-        print("Guardado exitoso UwU 😊")
+    locales = findBusiness()    
 
 
+    while codLocal != 0:
+        clear("cls")
+        
+        pantalla_locales(locales)
+        print("\nIngrese el local que desea modificar: \n")
+
+        codLocal = validar_tipo(input("Ingrese un código de local [0 para salir]: "), int, 0, len(locales)-1)
+        
+        [local,localPuntero] = busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, searchBusiness)
+        
+        if(local and codLocal != 0):
+
+            save=pantalla_mod_locales(local,locales)    
+
+            if(save):    
+                print("\nDesea guardar estos cambios ?\n")
+                opc = yes_no()
+                if opc == "Y":
+                    updatedata(
+                        local,
+                        ARCHIVO_LOGICO_LOCALES,
+                        localPuntero,
+                        lj_locales,
+                    )
+                    []
+                    print("Guardado exitoso UwU 😊")
+                    clear("pause")
+
+            else:
+                print("\nDesea ingresar otro local? \n")
+
+#elim_locales()
 mod_locales()
-
 
 def crear_cuenta_dueno():
     nuevoUsuario = Usuario()
