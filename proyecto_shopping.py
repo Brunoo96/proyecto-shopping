@@ -156,6 +156,9 @@ def ljnovedades(x):
     x.estado = str(x.estado).ljust()
 
 
+
+#-------------------------------- Funciones - Views -----------------------------------------------
+
 def testSchema(colsDate:list[str],data:list[str]):
     #cols=["CodLocal","Nombre","Estado"]
     # Obtener el tamaño de la terminal
@@ -198,6 +201,23 @@ def testSchema(colsDate:list[str],data:list[str]):
 
     #print("| DATO | ")
     
+def charge(load:int, hz=2):
+    flagi = True
+    charge= "Cargando"
+    index = 0
+    points =0
+    
+    while index  < load :        
+        clear("cls")
+        charge+="."
+        points+=1
+        if(points == 4):
+            points=0
+            charge="Cargando"
+        print(charge)
+        time.sleep(1/hz)
+        index += 1/hz
+        
 #-------------------------------- Funciones - Utils -----------------------------------------------
 #Funcion para emparejar el texto en la pantalla 
 def text_center(data,space):
@@ -351,6 +371,7 @@ def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callbac
             auxj = pickle.load(ARCHIVO_LOGICO)
             callback(auxi,auxj,logica)
 
+#Funcion para ordenar un array 
 def falso_burbuja_array(lista,callback):  
     def logica():
         aux = lista[i]
@@ -366,7 +387,7 @@ def falso_burbuja_array(lista,callback):
 #Funcion para buscar un elemento usando busqueda binaria
 def busquedadico(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
     """Data:valor a entcontrar , ARCHIVO_LOGICO , ARCHIVO_FISICO"""
-
+    retemp:Locales
     data = str(data).split()
 
     ARCHIVO_LOGICO.seek(0, 0)
@@ -387,15 +408,19 @@ def busquedadico(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
 
     retemp = pickle.load(ARCHIVO_LOGICO)
     while str(retemp.nombreLocal).split() != data and desde < hasta:
+        
         if data < str(retemp.nombreLocal).split():
             hasta = medio - 1
         else:
             desde = medio + 1
         medio = (desde + hasta) // 2
 
+    print(retemp.nombreLocal)
     if str(retemp.nombreLocal).split() == data:
+        print("Se encontro")
         return True
     else:
+        print("No se encontro")
         return False
 
 #Test de funcion para cargar locales 
@@ -464,6 +489,14 @@ def validar_clave(val):
         i += 1
     return aux
 
+#Test de funcion para ver todos los usuarios registrados
+def mostrarUsuarios():
+    t = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
+    ARCHIVO_LOGICO_USUARIOS.seek(0)
+    while ARCHIVO_LOGICO_USUARIOS.tell() < t:
+        regtemporal:Usuario = pickle.load(ARCHIVO_LOGICO_USUARIOS)
+        print(regtemporal.nombreUsuario,regtemporal.claveUsuario)
+    time.sleep(2)
 
 def inputclass(opc: str, length: int) ->str:
     while not (len(opc) < length):
@@ -648,6 +681,7 @@ def gestion_locales():
     opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
 
     while opcion != "e":
+        
         match opcion:
             case "a":
                 crear_locales()
@@ -659,6 +693,7 @@ def gestion_locales():
                 mapa_locales()
             case "e":
                 print("Volviste al menu principal")
+        clear("cls")       
         print(a)
 
         opcion = validar_tipo(input("Ingrese una opcion  "), str, "a", "e")
@@ -682,10 +717,14 @@ def crear_locales():
         else:
             return False
 
+    pantalla_locales([NuevoLocal])
+
     while local != "0":
         local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50)
-        while not (busquedadico(local, ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES)):
-            local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50)
+        #No anda busquedadicotomica arreglar hoy
+        
+        """ while not ():
+            local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50) """
 
         ubicacion = inputclass()
         rubro = validacion_rubro(input("Ingrese el rubro del local: "))
@@ -708,6 +747,9 @@ def crear_locales():
         NuevoLocal.UbicacionLocal = ubicacion
         NuevoLocal.rubroLocal = rubro
         NuevoLocal.codUsuario = codduenolocal
+
+
+crear_locales()
 
 def mod_locales():
     local:Locales
@@ -868,7 +910,6 @@ def pantalla_mod_locales(local: Locales) -> bool:
     pantalla_locales([local])
     return True
 
-mod_locales()
                        
 def baja_logica(cod:str) :
     def Searchlocal(regtemp,pos):
@@ -1077,7 +1118,7 @@ def reporte_uso_desc():
     print("CHAU!")
 
 
-
+#mod_locales()
 #owner_menu()
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
@@ -1158,17 +1199,17 @@ def usuario_registrado():
     password = inputclass(getpass.getpass("Ingrese su contraseña: "), 8)
 
     def login(regtemporal, p):
-        print(regtemporal)
         if (
             str(regtemporal.nombreUsuario).strip() == email.strip()
             and str(regtemporal.claveUsuario).strip() == password.strip()
         ):
-            return regtemporal.tipoUsuario
+            return str(regtemporal.tipoUsuario).strip()
         else:
             return False
 
     tipo = busquedasecuencial(ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, login)
 
+    charge(4)
     # Hacer menu para la proxima
     match (tipo):
         case ("administrador"):
@@ -1211,18 +1252,9 @@ def menuprincipal():
     os.system("pause")
 
 
-# menuprincipal()
 
+menuprincipal()
 
-def mostrarUsuarios():
-    t = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
-    ARCHIVO_LOGICO_USUARIOS.seek(0)
-    while ARCHIVO_LOGICO_USUARIOS.tell() < t:
-        regtemporal = pickle.load(ARCHIVO_LOGICO_USUARIOS)
-        print(regtemporal.codUsuario)
-
-
-# mostrarUsuarios()
 
 
 
