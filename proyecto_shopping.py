@@ -6,6 +6,7 @@ import io
 import pickle
 import time
 import datetime
+import math
 
 # import colorama
 """ while True:   
@@ -29,6 +30,7 @@ import datetime
 # print_advertencia = lambda txt: print(Fore.RED + txt, Fore.RESET)
 # print_completado = lambda txt: print(Fore.GREEN + txt, Fore.RESET)
 # print_aviso = lambda txt: print(Fore.YELLOW + txt, Fore.RESET)
+clear = lambda x: os.system(x)
 
 #-------------------------------------------------------Classes----------------------------------------------------
 
@@ -49,7 +51,6 @@ class Locales:
         self.rubroLocal = ""
         self.codUsuario = 0
         self.estado = "A"
-
 
 class Promociones:
     def __init__(self):
@@ -155,21 +156,74 @@ def ljnovedades(x):
     x.estado = str(x.estado).ljust()
 
 
+def testSchema(colsDate:list[str],data:list[str]):
+    #cols=["CodLocal","Nombre","Estado"]
+    # Obtener el tamaño de la terminal
+    tamano_terminal = os.get_terminal_size()
+    
+    # Extraer el número de columnas y filas
+    columnas, filas = tamano_terminal.columns, tamano_terminal.lines
+    #print(columnas,"Columnas")
+
+    numberColsDate= len(colsDate)
+
+    #Espacio para separar los datos
+    space = ((columnas-numberColsDate) // numberColsDate)
+    
+    #Agregar espacio
+    for i in range(0,numberColsDate):
+        colsDate[i]= text_center(colsDate[i],space)
+    
+    techo  = "-"*columnas
+    pared= ""
+    header= "|"
+
+    for i in range(0,numberColsDate):
+        mid = (space-len(colsDate[i]))/2
+        header += colsDate[i] + "|"
+        
+    print(techo)
+    print(header)
+    print(techo)
+    for i in range(0,len(data)):
+        pared+="|"
+        for t  in range(0,numberColsDate):
+            pared+=text_center(text_format(data[i][t],space),space) +"|"
+        pared+="\n"
+        pared+=techo
+        
+    print(pared)
+        
+
+
+    #print("| DATO | ")
+    
 #-------------------------------- Funciones - Utils -----------------------------------------------
+#Funcion para emparejar el texto en la pantalla 
+def text_center(data,space):
+    mid = (space- len(data)) / 2
+    parte_decimal = mid - int(mid)
+    if(str(parte_decimal) == "0.0"):
+        mid=int(mid)
+        return (" "*mid)+data+(" "*mid)
+    else:
+        mid = int(mid)
+        return (" "*mid)+" "+data+(" "*mid)    
 
-def date():
-    flag = True
-    while flag:
-        try:
-            fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
-            datetime.datetime.strptime(fecha, "%d/%m/%Y")
-            print("Fecha valida")
-            flag = False
-        except ValueError:
-            print("Fecha invalida")
-    dia, mes, anio = fecha.split("/")
-    return fecha
+#Funcion para cortar la longitud del texto
+def text_format(data:str,length:int):
+    aux = ""
+    if(len(data) > length):
+        for i in range(0,length-3):
+            if(data[i]=="\n"):
+                aux+=""
+            else:  
+                aux+=data[i]
+    else:
+        aux=data
+    return aux
 
+#Funcion para guardar en los archivos (Guarda a lo ultimo del archivo)
 def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, formatter):
     """(DATA - ARCHIVO_FISICO - ARCHIVO_LOGICO)"""
     try:
@@ -186,6 +240,7 @@ def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, forma
     except:
         print("Error inesperado")
 
+#Funcion para modificar una data de los archivos
 def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatter):
     try:
         formatter(data)
@@ -199,20 +254,44 @@ def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatt
     except:
         print("Error inesperado")
 
+#Funcion para convertir una clase a array bidimensional 
+def Class_to_Bidimensional(registro:list,callback) -> list:
+    aux=[]
+    flag = True
+    index = 0
+    while flag :
+        try:
+            aux.append(callback(registro,index))
+            index+=1
+        except:
+            flag = False
+    if(len(aux)):
+        for i in range(0,len(aux)):
+            for t in range(0,len(aux[0])):
+                aux[i][t] = str(aux[i][t]).strip()
+    return aux
+            
+#Funcion para mostrar los locales en modo schema    
 def pantalla_locales(locales:list[Locales]):
+    def formater(locales:list,i:int):
+        return [locales[i].codLocal,locales[i].nombreLocal,locales[i].UbicacionLocal,locales[i].rubroLocal,locales[i].estado] 
     lenght = len(locales)
-    if(lenght >0):
-        for i in range(0,lenght):
-            print(
-                    f"\nCódigo de Local: {locales[i].codLocal} ",
-                    f"\nNombre: {locales[i].nombreLocal} ",
-                    f"\nUbicacion: {locales[i].UbicacionLocal}",
-                    f"\nRubro: {locales[i].rubroLocal}",
-                    f"\nEstado: {locales[i].estado}"
-                )
-    else:
-        print("No hay locales")
 
+    def sort(auxi,auxj,logica):
+        if(auxi[0] > auxj[0]):
+            logica()
+            
+            
+
+    locales_bidi=Class_to_Bidimensional(locales,formater)
+
+    falso_burbuja_array(locales_bidi,sort)
+
+    cols=["CodLocal","Nombre","Ubicacion","Rubro","Estado"]
+
+    testSchema(cols,locales_bidi)
+
+#Funcion para verificar si ya existe una administrador
 def verificar_admin():
     tamaño = os.path.getsize(ARCHIVO_FISICO_USUARIOS)
     if tamaño == 0:
@@ -227,6 +306,7 @@ def verificar_admin():
             administrador, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, lj_usuarios
         )
 
+#Funcion para buscar un elemento en especifico
 def busquedasecuencial(
     ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, callback
 ) :
@@ -241,6 +321,7 @@ def busquedasecuencial(
 
     return encontrado
 
+#Test de funcion para mostrar locales
 def mostrarLocales():
     ARCHIVO_LOGICO_LOCALES.seek(0)
     t = os.path.getsize(ARCHIVO_FISICO_LOCALES)
@@ -248,6 +329,7 @@ def mostrarLocales():
         regTemp = pickle.load(ARCHIVO_LOGICO_LOCALES)
         pantalla_locales([regTemp])
 
+#Funcion para ordenar un archivo completo
 def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callback):
     def logica():
         ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
@@ -269,6 +351,19 @@ def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callbac
             auxj = pickle.load(ARCHIVO_LOGICO)
             callback(auxi,auxj,logica)
 
+def falso_burbuja_array(lista,callback):  
+    def logica():
+        aux = lista[i]
+        lista[i] = lista[j]
+        lista[j] = aux
+        
+    length = len(lista)
+    
+    for i in range(0,length-1):
+        for j in range(i+1,length):
+            callback(lista[i],lista[j],logica)
+    
+#Funcion para buscar un elemento usando busqueda binaria
 def busquedadico(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
     """Data:valor a entcontrar , ARCHIVO_LOGICO , ARCHIVO_FISICO"""
 
@@ -303,10 +398,7 @@ def busquedadico(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str):
     else:
         return False
 
-
-clear = lambda x: os.system(x)
-
-
+#Test de funcion para cargar locales 
 def locales():
     def randomm():
         numero_aleatorio = random.randint(1, 40)
@@ -336,8 +428,7 @@ def locales():
         index += 1
         savedata(NuevoLocal, ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, lj_locales)
 
-
-# funcion de ingreso
+# Funcion de ingreso que acepta si o no
 def yes_no() -> str:
     opcion = input("ingrese una opcion [Y-Si, N-No]: ").upper()
     print("")
@@ -346,7 +437,7 @@ def yes_no() -> str:
         print("")
     return opcion
 
-
+# Funcion para verificar el tipo de un dato y verificar el intervalo
 def validar_tipo(opc, tipo, desde: int, hasta: int) -> str | int:
     try:
         opc = tipo(opc)
@@ -360,10 +451,7 @@ def validar_tipo(opc, tipo, desde: int, hasta: int) -> str | int:
         return validar_tipo(opc, tipo, desde, hasta)
     return opc
 
-
-
-
-
+#Funcion para validar contraseña 3 intentos
 def validar_clave(val):
     i = 0
     aux = False
@@ -382,7 +470,7 @@ def inputclass(opc: str, length: int) ->str:
         opc = input(f"Error, Ingrese nuevamente (hasta {length} caracteres): ")
     return opc.ljust(length)
 
-
+#Funcion para validar el dominio
 def validar_dominio(email):
     data = ["", ""]
     tipos = ["@shopping.com"]
@@ -401,6 +489,7 @@ def validar_dominio(email):
         data = ["False", "Dominio inexistente, Ingrese un email valido"]
     return data
 
+#Funcion para validar el rubro
 def validacion_rubro(rubro: str)-> str:
     rubro = str(rubro)
     while (
@@ -411,6 +500,7 @@ def validacion_rubro(rubro: str)-> str:
         rubro = input("Ingrese un rubro correcto [indumentaria,comida,perfumeria]: ")
     return rubro
 
+#Funcion para buscar el autoincremental de un archivo
 def autoincremental(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO, callback):
     t = os.path.getsize(ARCHIVO_FISICO)
     ARCHIVO_LOGICO.seek(0)
@@ -423,6 +513,7 @@ def autoincremental(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO, callback)
 
     return callback(regtemporal)
 
+#Funcion para obetener todos los locales
 def findBusinessA()-> list[Locales]:
     localesActivos = []
     
@@ -435,6 +526,7 @@ def findBusinessA()-> list[Locales]:
 
     return localesActivos 
 
+#Funcion para obenter todos los locales activos
 def findBusiness() -> list[Locales]:
     localesActivos = []
 
@@ -447,7 +539,7 @@ def findBusiness() -> list[Locales]:
 
     return localesActivos 
 
-
+#No me acuerdo
 def extract_characters(listaFilter,callback)-> list:
     enum = []
     for i in range(0,len(listaFilter)):
@@ -455,10 +547,53 @@ def extract_characters(listaFilter,callback)-> list:
         enum.append(character)
     return enum   
           
+#Test para la funcion promociones
+def test():
+    objetos = []
+    estados = ["pendiente", "rechazado", "aprobado"]
+    for _ in range(20):
+        objeto = {
+            "precio": random.randint(1, 100),  # Precio aleatorio entre 1 y 100
+            "estado": random.choice(estados),  # Estado aleatorio de la lista de estados
+        }
+        objetos.append(objeto)
 
+    return objetos
+
+#Funcion en proceso
+def date():
+    flag = True
+    while flag:
+        try:
+            fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
+            datetime.datetime.strptime(fecha, "%d/%m/%Y")
+            while datetime.datetime.strptime(fecha, "%d/%m/%Y") < datetime.datetime.now() and flag:
+                print("Fecha invalida, fuera de tiempo")
+                fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
+                datetime.datetime.strptime(fecha, "%d/%m/%Y")
+            print("Fecha valida")
+            flag = False
+        except ValueError:
+            print("Fecha invalida")
+    dia, mes, anio = fecha.split("/")
+    return fecha
+
+#Funcion para validar un enum
+def validar_enum(opc:str | int,enum:list) -> str:
+    index= 0
+    flag = True
+    while (flag):
+        while (index < len(enum)):
+            if(opc == enum[index]):
+                flag = False
+                return opc
+            elif (opc=="0" ):
+                return opc
+            index+=1
+        index=0
+        opc = input("Error, ingrese nuevamente: ")
 
 # --------------------------------------- Construccion
-
 def construccion():
     clear("cls")
     print_aviso("en construcción...")
@@ -501,7 +636,7 @@ def admin_menu():
         case 4:
             gestion_novedades()
         case 5:
-            """reporte_descuentos()"""
+            reporte_descuentos()
 
 # -------------------Gestion de locales
 def gestion_locales():
@@ -585,10 +720,9 @@ def mod_locales():
         else:
             return False
 
-    locales = findBusiness()    
-
 
     while codLocal != 0:
+        locales = findBusiness()    
         clear("cls")
         
         pantalla_locales(locales)
@@ -600,7 +734,7 @@ def mod_locales():
         
         if(local and codLocal != 0):
 
-            save=pantalla_mod_locales(local,locales)    
+            save=pantalla_mod_locales(local)    
 
             if(save):    
                 print("\nDesea guardar estos cambios ?\n")
@@ -668,24 +802,13 @@ def mapa_locales():
 
 
 #---------------------------
-def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
-    
-    screen_locales = locales[int(str(local.codLocal).strip())]
-    
-    def pantalla_local():
-        print(
-            f"\nNombre: {local.nombreLocal} ",
-            f"\nUbicacion: {local.UbicacionLocal}",
-            f"\nRubro: {local.rubroLocal}",
-            f"\nEstado: {local.estado}",
-        )
-
-    clear("cls")
+def pantalla_mod_locales(local: Locales) -> bool:
+    clear("cls")    
     opcScreen = "Y"
     
-    pantalla_local()
+    print("EDITANDO 🔧 - 🔧 - 🔧 \n")
+    pantalla_locales([local])
 
-    
     opc = input(
         "\n1-Nombre\n2-Ubicacion\n3-Rubro\n4-Estado\n0-Salir\n\nIngrese lo que desea modificar:  "
     )
@@ -694,24 +817,21 @@ def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
         match (opc):
             case ("1"):
                 nombre = inputclass(input("Ingrese el nuevo nombre del local: "), 50)
-                local.nombreLocal = nombre
-                screen_locales.nombreLocal=nombre
+                local.nombreLocal = nombre                
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
             case ("2"):
                 ubicacion = inputclass(
                     input("Ingrese la nueva ubicación del local: "), 50
                 )
-                local.UbicacionLocal = ubicacion
-                screen_locales.UbicacionLocal=ubicacion
+                local.UbicacionLocal = ubicacion                
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
             case ("3"):
                 rubro = inputclass(
                     validacion_rubro(input("Ingrese el nuevo rubro: ")), 50
                 )
-                local.rubroLocal = rubro
-                screen_locales.rubroLocal= rubro
+                local.rubroLocal = rubro                
                 print("Desea modificar otro campo del local?")
                 opcScreen = yes_no()
             case("4"):
@@ -722,37 +842,34 @@ def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
                     opc = yes_no()                    
                     if(opc =="Y"):
                         baja_logica(str(local.codLocal).strip())          
-
-                        local.estado="B"
-                        screen_locales.estado = "B"
-                        
+                        local.estado="B"                        
                         clear("pause")
                 else:
-
                     local.estado = "A"
-                    screen_locales.estado = "A"
-
                     print("Estado actualizado")
                     clear("pause")
                     print("Desea modificar otro campo del local?")
                     opcScreen = yes_no()
-
             case ("0"):
                 return False
 
         clear("cls")
         if opcScreen == "Y":
-            pantalla_local()
+            print("EDITANDO 🔧 - 🔧 - 🔧 \n")
+            print(local.nombreLocal)
+            pantalla_locales([local])
             opc = input(
                 "\n1-Nombre\n2-Ubicacion\n3-Rubro\n4-Estado\n0-Salir\nIngrese lo que desea modificar: "
             )
             
     clear("cls")
     print("Su local actualizado")
-    pantalla_local()
+    print("EDITANDO 🔧 - 🔧 - 🔧 \n")
+    pantalla_locales([local])
     return True
 
-                            
+mod_locales()
+                       
 def baja_logica(cod:str) :
     def Searchlocal(regtemp,pos):
         if str(regtemp.codLocal).strip() == str(cod) and str(regtemp.estado).strip()  == 'A':
@@ -780,8 +897,13 @@ def baja_logica(cod:str) :
             print("Baja existosa")
                 
 #---------------------------
-        
-
+def reporte_descuentos():
+    print("Fecha Mínima: ")
+    fechadesde = date()
+    print("Fecha Máxima: ")
+    fechahasta = date()
+   
+#---------------------------
 def crear_cuenta_dueno():
     nuevoUsuario = Usuario()
     encontro = True
@@ -817,21 +939,17 @@ def crear_cuenta_dueno():
         nuevoUsuario, ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, lj_usuarios
     )
 
-def test():
-    objetos = []
-    estados = ["pendiente", "rechazado", "aprobado"]
-    for _ in range(20):
-        objeto = {
-            "precio": random.randint(1, 100),  # Precio aleatorio entre 1 y 100
-            "estado": random.choice(estados),  # Estado aleatorio de la lista de estados
-        }
-        objetos.append(objeto)
-
-    return objetos
-
 
 def mostrar_descuentos_pendientes(registro:list[Promociones]):
-    longitud = len(registro)
+    clear("cls")
+    colsPromocion = ["Nombre","CodLocal","CodPromocion","Estado"]
+    data = []
+    for i in range(0,len(registro)):
+        data.append([str(registro[i].codLocal).strip(),str(registro[i].codPromo).strip(),str(registro[i].estado).strip(),"null"])
+    
+    testSchema(colsPromocion,data) 
+
+    """ longitud = len(registro)
     if longitud > 0:
         for i in range(0, longitud):
             print("Código de local: ",registro[i].codLocal)
@@ -839,7 +957,7 @@ def mostrar_descuentos_pendientes(registro:list[Promociones]):
             print("Estado del local: ",registro[i].estado)
             print("\n")
     else:
-        print("No hay archivos")
+        print("No hay archivos") """
 
 
 def promotionsPending() -> list[Promociones]  :
@@ -895,19 +1013,7 @@ def logica_descuento(cod:int):
                 return
             
             
-def validar_enum(opc,enum:list) -> str:
-    index= 0
-    flag = True
-    while (flag):
-        while (index < len(enum)):
-            if(opc == enum[index]):
-                flag = False
-                return opc
-            elif (opc=="0" ):
-                return opc
-            index+=1
-        index=0
-        opc = input("Error, ingrese nuevamente: ")
+
     
 def aprobar_denegar_descuento():            
     cod:str
@@ -932,43 +1038,7 @@ def aprobar_denegar_descuento():
             cod =validar_enum(input("Ingrese el cod de promoción que quiere aprobar/rechazar [0-Salir]: "),enum)
         elif(continuar == "N"):
             return
-            
-             
-
-aprobar_denegar_descuento()
-            
-
-                   
-    
-"""    while  cod  != "*":
-        try:
-            cod = int(cod)
-            encontrado = False
-
-            for i in range (0,len(regPendientes)): 
-                if (cod == int(regPendientes[i].codLocal)):
-                    encontrado = True
-
-            if(encontrado):
-                busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, ModifyState)
-                def ModifyState(regtemp):
-                    if cod == regtemp.codPromo:
-                        return regtemp
-                    else:
-                        return False
-                while not(ModifyState):
-                    return
-                opc = input("Escriba si desea aprobar o rechazar la promoción de este local: ").upper()
-                while opc != "aprobar" and opc != 'rechazar':
-                    opc = input("Escriba si desea aprobar o rechazar la promoción de este local correctamente: ").upper()
-                if opc == 'aprobar':
-                     print("Hola")
-                else:
-                    print("Hola")
-        except:
-            cod = input("Ingrese el cod de local que quiere aprobar/rechazar correctamente: ")"""
-
-
+              
 
 def gestion_novedades():
     print(
@@ -981,7 +1051,34 @@ def gestion_novedades():
     )
     clear("pause")
 
+def owner_menu():
+    #os.system("cls")
+    a = "Menú principal:\n1. Crear descuento\n2. Reporte uso de descuentos\n3. Ver novedades\n0. Salir"
+    print(a)
+    opc = validar_tipo(input("Ingrese una opción: "), int, 0, 3)
+    match (opc):
+        case (1):
+            crear_descuento()
+        case (2):
+            reporte_uso_desc()
+        case (3):
+            print("Está en chapin")
+        case (0):
+            print("Ha salido")
 
+def crear_descuento():
+    locales = findBusinessA()
+    cod = validar_enum(input("Ingrese el cod de promoción que quiere aprobar/rechazar [0-Salir]: "), locales)
+    print(locales)
+
+
+
+def reporte_uso_desc():
+    print("CHAU!")
+
+
+
+#owner_menu()
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
 def cliente_menu():
@@ -1126,7 +1223,6 @@ def mostrarUsuarios():
 
 
 # mostrarUsuarios()
-
 
 
 
