@@ -294,7 +294,7 @@ def Class_to_Bidimensional(registro:list,callback) -> list:
 #Funcion para mostrar los locales en modo schema    
 def pantalla_locales(locales:list[Locales]):
     def formater(locales:list,i:int):
-        return [locales[i].codLocal,locales[i].nombreLocal,locales[i].UbicacionLocal,locales[i].rubroLocal,locales[i].estado] 
+        return [locales[i].codUsuario,locales[i].codLocal,locales[i].nombreLocal,locales[i].UbicacionLocal,locales[i].rubroLocal,locales[i].estado] 
     lenght = len(locales)
 
     def sort(auxi,auxj,logica):
@@ -307,7 +307,7 @@ def pantalla_locales(locales:list[Locales]):
 
     falso_burbuja_array(locales_bidi,sort)
 
-    cols=["CodLocal","Nombre","Ubicacion","Rubro","Estado"]
+    cols=["CodUsuario","CodLocal","Nombre","Ubicacion","Rubro","Estado"]
 
     testSchema(cols,locales_bidi)
 
@@ -716,21 +716,38 @@ def crear_locales():
             return regtemporal.codUsuario
         else:
             return False
+    
+    def refresh():
+        clear("cls")
+        print("Todos los campos son requeridos: \n")
+        pantalla_locales([NuevoLocal])
 
-    pantalla_locales([NuevoLocal])
+    refresh()
 
     while local != "0":
-        local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50)
+
+        local = inputclass(input("\nIngrese un nombre de local [0 para salir]: "), 50)
+        NuevoLocal.nombreLocal = local
+        refresh()
+        
         #No anda busquedadicotomica arreglar hoy
         
         """ while not ():
-            local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50) """
+            local = inputclass(input("Ingrese un nombre de local [0 para salir]: "), 50) """  
+        
+        ubicacion = inputclass(input("\nIngrese la ubicacion del local: "),50)
+        NuevoLocal.UbicacionLocal = ubicacion
+        refresh()
 
-        ubicacion = inputclass()
-        rubro = validacion_rubro(input("Ingrese el rubro del local: "))
+        rubro = validacion_rubro(input("\nIngrese el rubro del local: "))
+        NuevoLocal.rubroLocal = rubro
+        refresh()
 
-        codduenolocal = int(input("Ingrese un código de un dueño de local: "))
-        while not (
+        codduenolocal = int(input("\nIngrese un código de un dueño de local: "))
+        NuevoLocal.codUsuario = codduenolocal
+        refresh()
+        
+        """ while not (
             busquedasecuencial(
                 codduenolocal,
                 ARCHIVO_LOGICO_USUARIOS,
@@ -742,12 +759,9 @@ def crear_locales():
 
         NuevoLocal.codLocal = autoincremental(
             ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, autoincrementarlocal
-        )
-        NuevoLocal.nombreLocal = local
-        NuevoLocal.UbicacionLocal = ubicacion
-        NuevoLocal.rubroLocal = rubro
-        NuevoLocal.codUsuario = codduenolocal
-
+        ) """
+        
+        #savedata(NuevoLocal,ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES,lj_locales)
 
 crear_locales()
 
@@ -1118,7 +1132,7 @@ def reporte_uso_desc():
     print("CHAU!")
 
 
-#mod_locales()
+mod_locales()
 #owner_menu()
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
