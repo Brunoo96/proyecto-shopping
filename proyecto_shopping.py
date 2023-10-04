@@ -347,7 +347,7 @@ def yes_no() -> str:
     return opcion
 
 
-def validar_tipo(opc, tipo, desde: int, hasta: int):
+def validar_tipo(opc, tipo, desde: int, hasta: int) -> str | int:
     try:
         opc = tipo(opc)
         while not (opc >= desde and opc <= hasta):
@@ -359,6 +359,9 @@ def validar_tipo(opc, tipo, desde: int, hasta: int):
         opc = input("intente nuevamente: ")
         return validar_tipo(opc, tipo, desde, hasta)
     return opc
+
+
+
 
 
 def validar_clave(val):
@@ -443,6 +446,17 @@ def findBusiness() -> list[Locales]:
     busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
 
     return localesActivos 
+
+
+def extract_characters(listaFilter,callback)-> list:
+    enum = []
+    for i in range(0,len(listaFilter)):
+        character = callback(i,listaFilter)
+        enum.append(character)
+    return enum   
+          
+
+
 # --------------------------------------- Construccion
 
 def construccion():
@@ -652,9 +666,7 @@ def mapa_locales():
     clear("pause")
     clear("cls")
 
-    
 
-mapa_locales()
 #---------------------------
 def pantalla_mod_locales(local: Locales,locales:list[Locales]) -> bool:
     
@@ -818,33 +830,117 @@ def test():
     return objetos
 
 
-def mostrar_descuentos_pendientes(registro):
+def mostrar_descuentos_pendientes(registro:list[Promociones]):
     longitud = len(registro)
     if longitud > 0:
         for i in range(0, longitud):
-            print(registro[i].codLocal)
-            print(registro[i].estado)
-            print(registro[i].codPromo)
+            print("Código de local: ",registro[i].codLocal)
+            print("Código de promoción del local: ",registro[i].codPromo)
+            print("Estado del local: ",registro[i].estado)
+            print("\n")
     else:
         print("No hay archivos")
 
 
-def aprobar_denegar_descuento():
+def promotionsPending() -> list[Promociones]  :
     regPendientes: list[Promociones] = []
 
     def SearchState(regtemp, p):
         if str(regtemp.estado).strip() == "pendiente":
             regPendientes.append(regtemp)
-        return False
-
+        return False    
+        
     busquedasecuencial(
         ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, SearchState
     )
+    
+    return regPendientes
+
+    
+def logica_descuento(cod:int):
+    regtemp:Promociones
+    pos:int
+
+    def Searchcodstate(regtemp,pos):
+            if str(cod) == str(regtemp.codPromo).strip():
+                return [regtemp,pos]
+            else:
+                return False       
+
+    [regtemp,pos]=busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,Searchcodstate) 
+
+    if regtemp:
+        opc = input("Desea rechazar o aprobar la promoción del local?: ").lower()
+        print(opc)
+        
+        while opc != "aprobar" and opc != "rechazar" and opc != "salir":
+            opc = input("Escriba correctamente si desea rechazar o aprobar la promoción del local: ").lower()
+
+        match (opc):
+            case ("aprobar"):
+                print("Estás seguro que desea aprobar esta promoción?")
+                yn = yes_no()
+                if yn == 'Y':
+                    regtemp.estado = "aprobado"
+                    updatedata(regtemp, ARCHIVO_LOGICO_PROMOCIONES,pos,lj_promociones)
+                    print("Guardado exitoso! 🕵️‍♂️ ")
+            case ("rechazar"):
+                print("Estás seguro que desea rechazar esta promoción?")
+                yn = yes_no()
+                if yn  == 'Y':
+                    regtemp.estado = "rechazado"
+                    updatedata(regtemp, ARCHIVO_LOGICO_PROMOCIONES,pos,lj_promociones)
+                    print("Guardado existoso! 🕵️‍♂️ ")
+            case("salir"):
+                return
+            
+            
+def validar_enum(opc,enum:list) -> str:
+    index= 0
+    flag = True
+    while (flag):
+        while (index < len(enum)):
+            if(opc == enum[index]):
+                flag = False
+                return opc
+            elif (opc=="0" ):
+                return opc
+            index+=1
+        index=0
+        opc = input("Error, ingrese nuevamente: ")
+    
+def aprobar_denegar_descuento():            
+    cod:str
+    enum:list
+    
+    regPendientes  = promotionsPending()
+
+    def filter(i:int,promociones:list[Promociones]):
+        return str(promociones[i].codLocal).strip()
+
+    enum = extract_characters(regPendientes,filter)
 
     mostrar_descuentos_pendientes(regPendientes)
 
-    """ cod = input("Ingrese el cod de local que quiere aprobar/rechazar: ")
-    while  cod  != "*":
+    cod = validar_enum(input("Ingrese el cod de promoción que quiere aprobar/rechazar [0-Salir]: "),enum)
+
+    while (cod != "0"):
+        logica_descuento(cod)
+        print("Desea seguir en aprobar/denegar descuentos?: ")
+        continuar=yes_no()
+        if(continuar == "Y"): 
+            cod =validar_enum(input("Ingrese el cod de promoción que quiere aprobar/rechazar [0-Salir]: "),enum)
+        elif(continuar == "N"):
+            return
+            
+             
+
+aprobar_denegar_descuento()
+            
+
+                   
+    
+"""    while  cod  != "*":
         try:
             cod = int(cod)
             encontrado = False
@@ -855,9 +951,23 @@ def aprobar_denegar_descuento():
 
             if(encontrado):
                 busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, ModifyState)
-            
+                def ModifyState(regtemp):
+                    if cod == regtemp.codPromo:
+                        return regtemp
+                    else:
+                        return False
+                while not(ModifyState):
+                    return
+                opc = input("Escriba si desea aprobar o rechazar la promoción de este local: ").upper()
+                while opc != "aprobar" and opc != 'rechazar':
+                    opc = input("Escriba si desea aprobar o rechazar la promoción de este local correctamente: ").upper()
+                if opc == 'aprobar':
+                     print("Hola")
+                else:
+                    print("Hola")
         except:
-            cod = input("Ingrese el cod de local que quiere aprobar/rechazar correctamente: ") """
+            cod = input("Ingrese el cod de local que quiere aprobar/rechazar correctamente: ")"""
+
 
 
 def gestion_novedades():
