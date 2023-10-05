@@ -21,7 +21,7 @@ import math
 # colorama.init()
 
 
-#from faker import Faker
+from faker import Faker
 
 #from rich import print
 
@@ -33,6 +33,12 @@ import math
 clear = lambda x: os.system(x)
 
 #-------------------------------------------------------Classes----------------------------------------------------
+class Session:
+    def __init__(self):
+        self.codUsuario= 0
+        self.nombreUsuario= ""
+        self.tipoUsuario= ""
+
 
 class Usuario:
     def __init__(self):
@@ -41,7 +47,6 @@ class Usuario:
         self.claveUsuario = ""
         self.tipoUsuario = ""
         """ DuenoDeLocal administrador cliente """
-
 
 class Locales:
     def __init__(self):
@@ -60,8 +65,8 @@ class Promociones:
         self.HastaPromo = ""
         self.diasSemana = [0] * 6
         self.estado = ""
-        # estado (‘pendiente’, ‘aprobada’, ‘rechazada’) string(10)
         self.codLocal = 0
+        # estado (‘pendiente’, ‘aprobada’, ‘rechazada’) string(10)
 
 
 class Novedades:
@@ -114,46 +119,52 @@ ARCHIVO_LOGICO_PROMOCIONES = abrirarchivos(ARCHIVO_FISICO_PROMOCIONES)
 ARCHIVO_LOGICO_USOPROMOCIONES = abrirarchivos(ARCHIVO_FISICO_USOPROMOCIONES)
 ARCHIVO_LOGICO_NOVEDADES = abrirarchivos(ARCHIVO_FISICO_NOVEDADES)
 
+#------------------------------------------------Session-----------------#
+NowSession = Session()
 #------------------------------------------------Formateadores-----------------------------------------------------------
 def lj_usuarios(x):
-    x.codUsuario = str(x.codUsuario).ljust(8)
-    x.nombreUsuario = str(x.nombreUsuario).ljust(100)
-    x.claveUsuario = str(x.claveUsuario).ljust(8)
-    x.tipoUsuario = str(x.tipoUsuario).ljust(20)
+    x.codUsuario = str(x.codUsuario).ljust(8).lower()
+    x.nombreUsuario = str(x.nombreUsuario).ljust(100).lower()
+    x.claveUsuario = str(x.claveUsuario).ljust(8).lower()
+    x.tipoUsuario = str(x.tipoUsuario).ljust(20).lower()
 
+def saveSession(session:Usuario):
+    NowSession.codUsuario = str(session.codUsuario).strip()
+    NowSession.nombreUsuario = str(session.nombreUsuario).strip()
+    NowSession.tipoUsuario = str(session.tipoUsuario).strip()
 
 def lj_locales(x):
-    x.codLocal = str(x.codLocal).ljust(8)
-    x.nombreLocal = str(x.nombreLocal).ljust(50)
-    x.ubicacionLocal = str(x.rubroLocal).ljust(50)
-    x.rubroLocal = str(x.rubroLocal).ljust(50)
-    x.codUsuario = str(x.codUsuario).ljust(40)
+    x.codLocal = str(x.codLocal).ljust(8).lower()
+    x.nombreLocal = str(x.nombreLocal).ljust(50).lower()
+    x.ubicacionLocal = str(x.rubroLocal).ljust(50).lower()
+    x.rubroLocal = str(x.rubroLocal).ljust(50).lower()
+    x.codUsuario = str(x.codUsuario).ljust(40).lower()
     x.estado = str(x.estado).ljust(2)
 
 
 def lj_promociones(x):
-    x.codPromo = str(x.codPromo).ljust(8)
-    x.textoPromo = str(x.textoPromo).ljust(200)
-    x.fechaDesdePromo = str(x.fechaDesdePromo).ljust(10)
-    x.HastaPromo = str(x.HastaPromo).ljust(10)
+    x.codPromo = str(x.codPromo).ljust(8).lower()
+    x.textoPromo = str(x.textoPromo).ljust(200).lower()
+    x.fechaDesdePromo = str(x.fechaDesdePromo).ljust(10).lower()
+    x.HastaPromo = str(x.HastaPromo).ljust(10).lower()
     x.diasSemana = [0] * 6
-    x.estado = str(x.estado).ljust(10)
-    x.codLocal = str(x.codLocal).ljust(8)
+    x.estado = str(x.estado).ljust(10).lower()
+    x.codLocal = str(x.codLocal).ljust(8).lower()
 
 
 def lj_uso_promociones(x):
-    x.codCliente = str(x.codCliente).ljust()
-    x.codPromo = str(x.codPromo).ljust()
-    x.fechaUsoPromo = str(x.fechaUsoPromo).ljust()
+    x.codCliente = str(x.codCliente).ljust().lower()
+    x.codPromo = str(x.codPromo).ljust().lower()
+    x.fechaUsoPromo = str(x.fechaUsoPromo).ljust().lower()
 
 
 def ljnovedades(x):
-    x.codNovedad = str(x.codNovedad).ljust()
-    x.textoNovedad = str(x.textoNovedad).ljust()
-    x.fechaDesdeNovedad = str(x.fechaDesdeNovedad).ljust()
-    x.fechaHastaNovedad = str(x.fechaHastaNovedad).ljust()
-    x.tipoUsuario = str(x.tipoUsuario).ljust()
-    x.estado = str(x.estado).ljust()
+    x.codNovedad = str(x.codNovedad).ljust().lower()
+    x.textoNovedad = str(x.textoNovedad).ljust().lower()
+    x.fechaDesdeNovedad = str(x.fechaDesdeNovedad).ljust().lower()
+    x.fechaHastaNovedad = str(x.fechaHastaNovedad).ljust().lower()
+    x.tipoUsuario = str(x.tipoUsuario).ljust().lower()
+    x.estado = str(x.estado).ljust().lower()
 
 
 
@@ -294,8 +305,17 @@ def Class_to_Bidimensional(registro:list,callback) -> list:
             
 #Funcion para mostrar los locales en modo schema    
 def pantalla_locales(locales:list[Locales]):
+    def upperCase(cadena):
+        aux = ""
+        for i in range (0,len(cadena)):
+            if(i ==0):
+                aux +=cadena[0].upper()
+            else:
+                aux +=cadena[i]
+        return aux
+    
     def formater(locales:list,i:int):
-        return [locales[i].codUsuario,locales[i].codLocal,locales[i].nombreLocal,locales[i].UbicacionLocal,locales[i].rubroLocal,locales[i].estado] 
+        return [locales[i].codUsuario,locales[i].codLocal,upperCase(locales[i].nombreLocal),upperCase(locales[i].UbicacionLocal),upperCase(locales[i].rubroLocal),locales[i].estado] 
     lenght = len(locales)
 
     def sort(auxi,auxj,logica):
@@ -352,31 +372,34 @@ def mostrarLocales():
         print(regTemp)
         #pantalla_locales([regTemp])
 
+
 #Funcion para ordenar un archivo completo
 def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callback):
-    ARCHIVO_LOGICO.seek(0)
-    def logica():
-        ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
-        pickle.dump(auxj, ARCHIVO_LOGICO)
-        ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
-        pickle.dump(auxi, ARCHIVO_LOGICO)
-        print(auxi.codLocal,auxj.codLocal)
-
-    aux = pickle.load(ARCHIVO_LOGICO)
-    Tamregistro = ARCHIVO_LOGICO.tell()
     tamarchivo = os.path.getsize(ARCHIVO_FISICO)
-    cantreg = int(tamarchivo // Tamregistro) 
-    ARCHIVO_LOGICO.seek(0)
+    if tamarchivo <= 0:
+        ARCHIVO_LOGICO.seek(0)
+        aux = pickle.load(ARCHIVO_LOGICO)
+        Tamregistro = ARCHIVO_LOGICO.tell()
+        print(Tamregistro)
+        print(tamarchivo)
+        cantreg = int(tamarchivo // Tamregistro)
+        print(cantreg)
+        for i in range(0, cantreg - 1):
+            for j in range(i + 1, cantreg):
+                ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
+                auxi = pickle.load(ARCHIVO_LOGICO)
+                ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
+                auxj = pickle.load(ARCHIVO_LOGICO)
+                callback(auxi,auxj,logicafb) 
+            def logicafb():
+                ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
+                pickle.dump(auxj, ARCHIVO_LOGICO)
+                ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
+                pickle.dump(auxi, ARCHIVO_LOGICO)
+                print(auxi.codLocal,auxj.codLocal)
+
+
     
-
-    for i in range(0, cantreg - 1):
-        for j in range(i + 1, cantreg):
-            ARCHIVO_LOGICO.seek(i * Tamregistro, 0)
-            auxi = pickle.load(ARCHIVO_LOGICO)
-            ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
-            auxj = pickle.load(ARCHIVO_LOGICO)
-            callback(auxi,auxj,logica)
-
 #Funcion para ordenar un array 
 def falso_burbuja_array(lista,callback):  
     def logica():
@@ -403,20 +426,34 @@ def busquedadico(data, ARCHIVO_LOGICO, ARCHIVO_FISICO):
 
     fin = cantreg-1
     
+
+    dato = str(data.upper())
     while inicio <= fin:
         medio = (inicio + fin) // 2
         ARCHIVO_LOGICO.seek(medio * tamregi)  #tamregi                                                                                                                                                                              tamaño de cada registro en bytes
         registro = pickle.load(ARCHIVO_LOGICO)
-        print(str(registro.nombreLocal).strip(),data)
-        if str(registro.nombreLocal).strip() == data:
+        nombres = str(registro.nombreLocal.upper())
+        print(nombres.strip(),"e",dato.strip(),"e")
+        if nombres.strip() == dato.strip():
             return medio  # Se encontró el elemento en la posición "medio"
-        elif str(registro.nombreLocal).strip() < data:
+        elif nombres.strip() < dato.strip():
             inicio = medio + 1
         else:
             fin = medio - 1
 
-    return -1  # Elemento no encontrado
+    return False # Elemento no encontrado
 
+
+def busquedaSecuencialArray(Lista:list,callback):
+    encontrado = False
+    hasta = len(Lista)
+    index = 0
+    while index < hasta and not(encontrado):
+        print(Lista[index])
+        encontrado = callback(Lista[index])
+        index=+1
+        
+    return encontrado
 
 #Test de funcion para cargar locales 
 def locales():
@@ -430,13 +467,13 @@ def locales():
             return "perfumeria"
 
     fake = Faker()
-    index = 0
+    index = 1
     for i in range(0, 20):
         NuevoLocal = Locales()
 
         NuevoLocal.codLocal = inputclass(str(index), 8)
-        NuevoLocal.nombreLocal = inputclass(fake.name(), 50)
-        NuevoLocal.UbicacionLocal = inputclass(fake.address(), 50)
+        NuevoLocal.nombreLocal = inputclass("test", 50).lower()
+        NuevoLocal.UbicacionLocal = inputclass("test", 50)
         NuevoLocal.rubroLocal = inputclass(randomm(), 50)
         NuevoLocal.codUsuario = inputclass(str(random.randint(5, 8)), 40)
         NuevoLocal.estado = inputclass("A", 2)
@@ -446,7 +483,7 @@ def locales():
         )
         print(NuevoLocal.codUsuario)
         index += 1
-        savedata(NuevoLocal, ARCHIVO_LOGICO_LOCALESLOCALES, ARCHIVO_FISICO_LOCALES, lj_locales)
+        savedata(NuevoLocal, ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, lj_locales)
 
 # Funcion de ingreso que acepta si o no
 def yes_no() -> str:
@@ -697,10 +734,20 @@ def gestion_locales():
 
 # ------------------ SubMenus de Gestion de locales
 def crear_locales():
+    local = "-1"
     encontrado = True
     continuar= "Y"
-    #localesession:list[Locales] = []
+    NuevoLocal = Locales()
+    localesession:list[Locales] = []
     locales = findBusiness()    
+
+    def searchNameVolatil(data):
+        print(data)
+        print(local)
+        if(local == data.nombreLocal):
+            return True
+        else:
+            return False
 
     def searchUserDueñoLocal(regtemporal, p):
         if (
@@ -719,24 +766,26 @@ def crear_locales():
     def formatter(locales:list,i:int):
         return [locales[i].nombreLocal,locales[i].UbicacionLocal,locales[i].rubroLocal,locales[i].codUsuario,locales[i].codLocal] 
     
-    def comparision(auxi,auxj,logica):
+    def comparision(auxi,auxj,logicafb):
         print(auxi.nombreLocal)
         if str(auxi.nombreLocal).strip() > str(auxj.nombreLocal).strip():
-            print(auxi.nombreLocal,auxj.nombreLocal )
-            logica()
+            print(auxi.nombreLocal,auxj.nombreLocal)
+            logicafb()
+
+    NuevoLocal = Locales()
     
     
     falso_burbuja(ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES,comparision)
-    
     #refresh()
     pantalla_locales(locales)
+
     while continuar == "Y":
-        NuevoLocal = Locales()
         local = input("\nIngrese un nombre de local [0 para salir]: ")
-        while local == "0" or busquedadico(local,ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES) != -1:
+        while local == "0" or busquedadico(local,ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES) or busquedaSecuencialArray(localesession,searchNameVolatil):
             if(local =="0"):
                 return
             local= input("\nError nombre existente: Ingrese un nombre de local [0 para salir]: ")
+            
         NuevoLocal.nombreLocal = local
         refresh()
 
@@ -756,29 +805,25 @@ def crear_locales():
         
         NuevoLocal.codLocal = autoincremental(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES)
         refresh()
-        
-            
-        
-        print("Desea gurdar este local ?: ")        
-        save = yes_no()
-        if save == 'Y':
-            savedata(NuevoLocal,ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES,lj_locales)
-            print("Guardado exitoso 📈 ")
-            
-        clear("cls")
-        print("Desea seguir cargando locales?: ")
+                
+
+        localesession.append(NuevoLocal)
+                    
+        print("Desea seguir cargando locales?")
         continuar = yes_no()
-    return
+        if(continuar == "Y"):
+            NuevoLocal = Locales()    
+            refresh()
+         
+    print("Desea guardar estos locales ?: ")        
+    pantalla_locales(localesession)
 
+    save = yes_no()
+    if save == 'Y':
+        for i in range(0, len(localesession)):
+            savedata(localesession[i],ARCHIVO_LOGICO_LOCALES,ARCHIVO_FISICO_LOCALES,lj_locales)
+        print("Guardado exitoso 📈 ")        
 
-
-           
-""" mostrarUsuarios()
-
-mostrarLocales()
- """
-
-crear_locales()
 
 def mod_locales():
     local:Locales
@@ -989,7 +1034,7 @@ def crear_cuenta_dueno():
             return False
 
     while encontro:
-        emailUsuario = str(inputclass("ingrese el nombre de usuario: ", 100))
+        emailUsuario = str(inputclass(input("ingrese el nombre de usuario: "), 100))
 
         encontro = busquedasecuencial(
             ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, searchUser
@@ -1136,31 +1181,29 @@ def owner_menu():
             print("Ha salido")
 
 def crear_descuento():
-    locales = findBusiness()
-    pantalla_locales(locales)
+    def Findcod(regtemp, p):
+        if str(regtemp.codLocal).strip() == str(cod):
+            return p
+        else:
+            return False
+    
     def filter(i:int,locales:list[locales]):
         return str(locales[i].codLocal).strip()
+    
     codlocales = extract_characters(locales,filter)
     cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
-    while cod != 0:
+    while cod != 0 or not(busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Findcod)):
         descripcion = input("Ingrese los detalles de su descuento: ")
         print("Ingrese desde que fecha quiere que se habilite su descuento ")
         desdefecha = date()
         print("Ingrese hasta que fecha quiere que su descuento esté disponible")
         hastafecha = date()
         
-        
-    
-#crear_descuento()
-
-
+    cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
 
 def reporte_uso_desc():
     print("CHAU!")
 
-
-"""mod_locales()"""
-#owner_menu()
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
 def cliente_menu():
@@ -1233,6 +1276,7 @@ def registrarse_cliente():
 
 
 def usuario_registrado():
+    usuario:Usuario
     clear("cls")
 
     email = inputclass(input("Ingrese email: "), 100)
@@ -1243,14 +1287,16 @@ def usuario_registrado():
             str(regtemporal.nombreUsuario).strip() == email.strip()
             and str(regtemporal.claveUsuario).strip() == password.strip()
         ):
-            return str(regtemporal.tipoUsuario).strip()
+            return regtemporal
         else:
             return False
 
-    tipo = busquedasecuencial(ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, login)
+    usuario = busquedasecuencial(ARCHIVO_LOGICO_USUARIOS, ARCHIVO_FISICO_USUARIOS, login)
 
+    saveSession(usuario) if (usuario) else None
+    
     charge(4)
-    match (tipo):
+    match (NowSession.tipoUsuario):
         case ("administrador"):
             admin_menu()
         case ("duenocliente"):
@@ -1260,9 +1306,7 @@ def usuario_registrado():
         case (_):
             return "Error"
 
-
 # --------------------------------------- Menu Principal ---------------------------------------------------------------------------------------------------------------------
-
 
 def menuprincipal():
     os.system("cls")
@@ -1291,10 +1335,8 @@ def menuprincipal():
     os.system("pause")
 
 
+#crear_locales()
 
 #menuprincipal()
-
-
-
-
+mostrarUsuarios()
 
