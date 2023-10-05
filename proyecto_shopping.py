@@ -166,6 +166,46 @@ def ljnovedades(x):
     x.tipoUsuario = str(x.tipoUsuario).ljust().lower()
     x.estado = str(x.estado).ljust().lower()
 
+#-------------------------------- Services -------------------------------------
+
+#Funcion para obetener todos los locales
+def findBusinessA()-> list[Locales]:
+    localesActivos = []
+    
+    def Searchlocalactivo(regtemp,pos):
+        if str(regtemp.estado).strip() == 'A':
+            localesActivos.append(regtemp)
+            return False
+
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalactivo)
+
+    return localesActivos 
+
+#Funcion para obenter todos los locales activos
+def findBusiness() -> list[Locales]:
+    localesActivos = []
+
+    def Searchlocal(regtemp:Locales,pos):
+        localesActivos.append(regtemp)
+
+        return False
+        
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
+
+    return localesActivos 
+
+def findBusinessById(id):
+    localesActivos = []
+    
+    def Searchlocalbycod(regtemp,pos):
+        if str(regtemp.codUsuario).strip() == id :
+            localesActivos.append(regtemp)
+        return False
+
+    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalbycod)
+
+    return localesActivos 
+     
 
 
 #-------------------------------- Funciones - Views -----------------------------------------------
@@ -360,8 +400,6 @@ def busquedasecuencial(
 
     return encontrado
 
-
-
 #Test de funcion para mostrar locales
 def mostrarLocales():
     ARCHIVO_LOGICO_LOCALES.seek(0)
@@ -371,7 +409,6 @@ def mostrarLocales():
         print(regTemp.nombreLocal,"22")
         print(regTemp)
         #pantalla_locales([regTemp])
-
 
 #Funcion para ordenar un archivo completo
 def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callback):
@@ -397,8 +434,6 @@ def falso_burbuja(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str,callbac
                 ARCHIVO_LOGICO.seek(j * Tamregistro, 0)
                 pickle.dump(auxi, ARCHIVO_LOGICO)
                 print(auxi.codLocal,auxj.codLocal)
-
-
     
 #Funcion para ordenar un array 
 def falso_burbuja_array(lista,callback):  
@@ -574,32 +609,6 @@ def autoincremental(ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO):
     total = t//tamano 
     return total+1
 
-#Funcion para obetener todos los locales
-def findBusinessA()-> list[Locales]:
-    localesActivos = []
-    
-    def Searchlocalactivo(regtemp,pos):
-        if str(regtemp.estado).strip() == 'A':
-            localesActivos.append(regtemp)
-            return False
-
-    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocalactivo)
-
-    return localesActivos 
-
-#Funcion para obenter todos los locales activos
-def findBusiness() -> list[Locales]:
-    localesActivos = []
-
-    def Searchlocal(regtemp:Locales,pos):
-        localesActivos.append(regtemp)
-
-        return False
-        
-    busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Searchlocal)
-
-    return localesActivos 
-
 #No me acuerdo
 def extract_characters(listaFilter,callback)-> list:
     enum = []
@@ -653,6 +662,32 @@ def validar_enum(opc:str | int,enum:list) -> str:
             index+=1
         index=0
         opc = input("Error, ingrese nuevamente: ")
+
+
+def findPromotion(id) -> list:
+    promociones:list[Promociones] = []
+    locales:list[Locales]
+
+    def searchPromotionbycod(regtemp,pos):
+        if str(regtemp.codLocal).strip() == locales[i] :
+            promociones.append([str(regtemp.codLocal).strip(),regtemp])
+        return False
+    
+    locales = findBusinessById(id) # Trae registros
+    
+    for i in range(0,len(locales)):
+        locales[i] = [str(locales[i].codLocal).strip()]
+    
+
+    for i in range(0,len(locales)):
+        busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,searchPromotionbycod)
+    
+    
+    return promociones
+    
+findPromotion("5")
+
+
 
 # --------------------------------------- Construccion
 def construccion():
@@ -1181,15 +1216,11 @@ def owner_menu():
             print("Ha salido")
 
 def crear_descuento():
-    def Findcod(regtemp, p):
-        if str(regtemp.codLocal).strip() == str(cod):
-            return p
-        else:
-            return False
     
     def filter(i:int,locales:list[locales]):
         return str(locales[i].codLocal).strip()
     
+    promotion = findPromotion()  
     codlocales = extract_characters(locales,filter)
     cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
     while cod != 0 or not(busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Findcod)):
@@ -1335,8 +1366,6 @@ def menuprincipal():
     os.system("pause")
 
 
-#crear_locales()
 
-#menuprincipal()
-mostrarUsuarios()
+menuprincipal()
 
