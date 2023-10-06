@@ -33,6 +33,8 @@ from faker import Faker
 clear = lambda x: os.system(x)
 
 #-------------------------------------------------------Classes----------------------------------------------------
+semana = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
+
 class Session:
     def __init__(self):
         self.codUsuario= 0
@@ -147,7 +149,7 @@ def lj_promociones(x):
     x.textoPromo = str(x.textoPromo).ljust(200).lower()
     x.fechaDesdePromo = str(x.fechaDesdePromo).ljust(10).lower()
     x.HastaPromo = str(x.HastaPromo).ljust(10).lower()
-    x.diasSemana = [0] * 6
+    x.diasSemana = str(x.diasSemana)
     x.estado = str(x.estado).ljust(10).lower()
     x.codLocal = str(x.codLocal).ljust(8).lower()
 
@@ -636,17 +638,18 @@ def date():
     while flag:
         try:
             fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
-            datetime.datetime.strptime(fecha, "%d/%m/%Y")
-            while datetime.datetime.strptime(fecha, "%d/%m/%Y") < datetime.datetime.now() and flag:
+            fecha= datetime.datetime.strptime(fecha, "%d/%m/%Y")
+            
+            while not(fecha.strftime("%d/%m/%Y") >= datetime.datetime.now().strftime("%d/%m/%Y")) and flag:
                 print("Fecha invalida, fuera de tiempo")
                 fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
-                datetime.datetime.strptime(fecha, "%d/%m/%Y")
+                fecha= datetime.datetime.strptime(fecha, "%d/%m/%Y")
+            
             print("Fecha valida")
             flag = False
         except ValueError:
             print("Fecha invalida")
-    dia, mes, anio = fecha.split("/")
-    return fecha
+    return fecha.strftime("%d/%m/%Y").split("/")
 
 #Funcion para validar un enum
 def validar_enum(opc:str | int,enum:list) -> str:
@@ -685,9 +688,6 @@ def findPromotion(id) -> list:
     
     return promociones
     
-findPromotion("5")
-
-
 
 # --------------------------------------- Construccion
 def construccion():
@@ -1216,21 +1216,42 @@ def owner_menu():
             print("Ha salido")
 
 def crear_descuento():
-    
-    def filter(i:int,locales:list[locales]):
+    def filter(i:int,locales:list[Locales]):
         return str(locales[i].codLocal).strip()
     
-    promotion = findPromotion()  
+    #promotion = findPromotion() 
+    flag = True
+    
+    locales=findBusinessById("5")
+
     codlocales = extract_characters(locales,filter)
+
+    print(codlocales)
+
     cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
+    
     while cod != 0 or not(busquedasecuencial(ARCHIVO_LOGICO_LOCALES, ARCHIVO_FISICO_LOCALES, Findcod)):
+        promo = Promociones()
         descripcion = input("Ingrese los detalles de su descuento: ")
         print("Ingrese desde que fecha quiere que se habilite su descuento ")
         desdefecha = date()
         print("Ingrese hasta que fecha quiere que su descuento esté disponible")
         hastafecha = date()
+        diasSemana = [0]*6
+        for i in range(0,len(semana)):
+            diasSemana[i] = validar_tipo(input(f"Ingrese si desea que la promoción esté disponible el dia {semana[i]} [0-No / [1-Si]]"),int,0,1)
+        print(diasSemana)
+        promo.textoPromo = descripcion
+        promo.fechaDesdePromo = desdefecha
+        promo.HastaPromo = hastafecha
+        promo.diasSemana = diasSemana
+        promo.estado = "pendiente"
+        promo.codLocal = cod
+        promo.codPromo = autoincremental(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES)
+
+        savedata(promo, ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,lj_promociones) 
         
-    cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
+        cod = validar_enum(input("Ingrese el codigo de su local para aplicar un descuento [0-Salir]: "),codlocales)
 
 def reporte_uso_desc():
     print("CHAU!")
@@ -1367,5 +1388,8 @@ def menuprincipal():
 
 
 
+
+    
 menuprincipal()
+#crear_descuento()
 
