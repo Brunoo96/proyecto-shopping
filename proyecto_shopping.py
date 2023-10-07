@@ -197,6 +197,7 @@ def findBusiness() -> list[Locales]:
 
     return localesActivos 
 
+#Funcion para obetener los locales del dueño
 def findBusinessById(id):
     localesActivos = []
     
@@ -209,6 +210,7 @@ def findBusinessById(id):
 
     return localesActivos 
      
+
 #-------------------------------- Funciones - Views -----------------------------------------------
 
 def testSchema(colsDate:list[str],data:list[str]):
@@ -295,6 +297,16 @@ def text_format(data:str,length:int):
         aux=data
     return aux
 
+#Funcion para devolver el string con la primera letra en mayusucula
+def upperCase(cadena):
+        aux = ""
+        for i in range (0,len(cadena)):
+            if(i ==0):
+                aux +=cadena[0].upper()
+            else:
+                aux +=cadena[i]
+        return aux
+
 #Funcion para guardar en los archivos (Guarda a lo ultimo del archivo)
 def savedata(data, ARCHIVO_LOGICO: io.BufferedRandom, ARCHIVO_FISICO: str, formatter):
     """(DATA - ARCHIVO_FISICO - ARCHIVO_LOGICO)"""
@@ -328,25 +340,18 @@ def updatedata(data, ARCHIVO_LOGICO: io.BufferedRandom, PosPuntero: str, formatt
         print("Error inesperado")
 
 def convertest(fecha:list):
-    print(fecha[2],"33333333333")
-    #[dia,mes,anos] = fecha
-    #print(dia,mes,anos)
-    
-    #return  datetime.date(int(años),int(mes),int(dia))
+    dia,mes,anos = fecha
+    return  datetime.date(int(anos),int(mes),int(dia))
     
 
 def compfecha(fecha:list,fechaslimit:list):
-        print(fechaslimit[0][0])
-        desde=convertest(fechaslimit[0][0]) #Este regtemp
-       # hasta=convertest(fechaslimit[0][1]) # Este regtemp
-        #print(desde,hasta)
-        """ print(desde,hasta)
+        desde=convertest(fechaslimit[0]) #Este regtemp
+        hasta=convertest(fechaslimit[1]) # Este regtemp
         cliente=convertest(fecha) # Este viene como parametro
-        print(desde, hasta)
         if(cliente >= desde and cliente <= hasta):
             return True
         else:
-            return False """
+            return False
 
 #Funcion para convertir una clase a array bidimensional 
 def Class_to_Bidimensional(registro:list,callback) -> list:
@@ -367,15 +372,6 @@ def Class_to_Bidimensional(registro:list,callback) -> list:
             
 #Funcion para mostrar los locales en modo schema    
 def pantalla_locales(locales:list[Locales]):
-    def upperCase(cadena):
-        aux = ""
-        for i in range (0,len(cadena)):
-            if(i ==0):
-                aux +=cadena[0].upper()
-            else:
-                aux +=cadena[i]
-        return aux
-    
     def formater(locales:list,i:int):
         return [locales[i].codUsuario,locales[i].codLocal,upperCase(locales[i].nombreLocal),upperCase(locales[i].UbicacionLocal),upperCase(locales[i].rubroLocal),locales[i].estado] 
     lenght = len(locales)
@@ -667,7 +663,6 @@ def vali_date():
                 fecha = input("Ingresa una fecha en el formato DD/MM/AAAA: ")
                 fecha= datetime.datetime.strptime(fecha, "%d/%m/%Y")
             
-            print("Fecha valida")
             flag = False
         except ValueError:
             print("Fecha invalida")
@@ -731,7 +726,7 @@ def mostrar_menu():
             c) Eliminar descuento de mi local
             d) Volver
           \n2. Aceptar / Rechazar pedido de descuento
-          \n3. Reporte de uso de descuentos 
+          \n3. De de uso de descuentos 
           \n0. Salir"""
     )
 
@@ -1286,12 +1281,30 @@ def crear_descuento():
             cod = "0"
 
 def reporte_uso_desc():
+    actualocals = []
+    
+    locales = findBusinessById("5")
+
+    #Locales 
+    #CodLocales <== CodPromos
+    
+    
+    
+    """ def findpromobydate(regtemp):
+        if list(formatDate(regtemp.fechaDesdePromo)) == desdefecha and list(formatDate(regtemp.HastaPromo)) == hastafecha and :
+            return locals.append(regtemp)
+
+
     print("Ingrese desde que fecha quiere que se habilite su descuento ")
     desdefecha = vali_date()
     print("Ingrese hasta que fecha quiere que su descuento esté disponible")
     hastafecha = vali_date()
 
+    busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, findpromobydate)
+    
 
+    pantalla_promociones(actualocals) """
+reporte_uso_desc()
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
 def cliente_menu():
@@ -1321,28 +1334,48 @@ def formatDate(fecha:str):
     return res    
 
 
+def pantalla_promociones(promociones:list[Promociones]):
+    #I[0] es el registro
+    #I[1] el dia que el cliente pidio la promocion
+    #I[2] si el dia esta habilitado o no
+    
+    cols = ["CodPromo","Info","Desde","Hasta","Dia"]
+    
+    def mostrar_estado(i,promocion):
+        if(promocion[i][2]):
+            return f"{upperCase(promocion[i][1])}: Válida ✅"
+        else:
+            return f"{upperCase(promocion[i][1])}:No válida ❎"
+            
+    def formater(promocion:list,i:int):
+        desde = convertest(formatDate(promocion[i][0].fechaDesdePromo))
+        hasta = convertest(formatDate(promocion[i][0].HastaPromo))
+        return [promocion[i][0].codPromo,promocion[i][0].textoPromo, desde, hasta,  mostrar_estado(i,promocion)]
+
+    bidi = Class_to_Bidimensional(promociones,formater)
+    
+    testSchema(cols,bidi)
+
+def comparacion(regtemp:Promociones,diahoy:datetime.date):
+        habilitado= False
+        for i in range(0,len(semana)):
+            diasSemana = str(regtemp.diasSemana[i]).strip() # [0] * 6 representando los dias de la semana
+            if  diahoy.strftime("%A").upper() == semana[i].upper() and diasSemana == "1":
+                habilitado=True
+                
+        return [diahoy.strftime("%A"),habilitado]
 
 def  buscar_descuentos_locales():
     def filter(i:int,locales:list[Locales]):
         return str(locales[i].codLocal).strip()
-    
+
     def Findlocal(local:Locales):
         print(local)
         if str(local.codLocal).strip() == cod :
             return local
         else:
             return False
-    
-    def comparacion(regtemp:Promociones):
-        diahoy = str(datetime.datetime.now().strftime("%A")).upper()  # Dia del sistema
-        codLocal = str(regtemp.codLocal).strip()  # CodLocal Promociones
-        for i in range(0,len(semana)):
-            diasSemana = str(regtemp.diasSemana[i]).strip() # [0] * 6 representando los dias de la semana
-            if  diahoy == semana[i].upper() and diasSemana == "1" and codLocal == cod:
-                return True
-            else:
-                return False
-    
+     
     locales=findBusinessA() # Trae todos los locales que estan activos
     
     codlocales = extract_characters(locales,filter) # Formatea array Locales
@@ -1351,36 +1384,27 @@ def  buscar_descuentos_locales():
 
     print("Ingrese para ver promociones del local")
 
-    fecha = vali_date() # Este es el invervalo   
-    
-    promoVigente = []
-    def asd(regtemp:Promociones,pos):
-    
-        desde = formatDate(regtemp.fechaDesdePromo)
-        hasta = formatDate(regtemp.HastaPromo)
-        codLocal = str(regtemp.codLocal).strip()
-        
-        print(desde)
-        if(compfecha(fecha,[desde,hasta]) and codLocal == cod):
-            return promoVigente.append(regtemp)
+    fecha = vali_date() # Este es el invervalo
 
-    busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,asd)
-    
-    print(promoVigente)
-    
-        
-    """ while cod != 0 or not(busquedaSecuencialArray(locales,Findlocal)) or not(busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, comparacion)):
-        cod = validar_enum(input("Ingrese un codigo de local activo [0-Salir]: "),codlocales,True)
-        print("Error, ingrese nuevamente para ver promociones del local")
-        fecha = vali_date() """
-   
-    
-    
-buscar_descuentos_locales()
+    fecha1 =convertest(fecha)  
+
+    promoVigente = []
+
+    def searchPromos(regtemp:Promociones,pos):
+        desde = list(formatDate(regtemp.fechaDesdePromo))
+        hasta = list(formatDate(regtemp.HastaPromo))
+        codLocal = str(regtemp.codLocal).strip()
+        if(compfecha(fecha,[desde,hasta]) and codLocal == cod):            
+            return promoVigente.append([regtemp,*comparacion(regtemp,fecha1)])
+             
+    #Falta usar la funncion comparation         
+    busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,searchPromos)
+
+    pantalla_promociones(promoVigente)
+                
 def solicitar_descuento():
     usopromo = Uso_Promociones()
     locales=findBusinessA()
-    codlocales = extract_characters(locales,filter)
 
     def filter(i:int,locales:list[Locales]):
         return str(locales[i].codLocal).strip()
@@ -1398,7 +1422,7 @@ def solicitar_descuento():
         else:
             return False
         
-
+    codlocales = extract_characters(locales,filter)
     cod = validar_enum(input("Ingrese el codigo de promoción de un local activo [0-Salir]: "), codlocales , True)
     while cod != "0" or not(busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, Findlocal)) or not(busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES, ARCHIVO_FISICO_PROMOCIONES, comparacion)):
         cod = validar_enum(input("Error, Ingresó un codigo de promoción de un local inactivo o la promoción no está disponible el día de hoy[0-Salir]: "),codlocales, True)
