@@ -266,8 +266,7 @@ def findpromoDate(desde,hasta):
     def promoactiva(regtemp:Promociones,pos):
         desde_reg =convertest(formatDate(regtemp.fechaDesdePromo)) #Fecha del registro
         hasta_reg =convertest(formatDate(regtemp.HastaPromo)) # Fecha del registro
-
-        if str(regtemp.estado).strip() == 'aprobado' and desde_reg >= convertest(desde)  and  convertest(hasta) <= hasta_reg:
+        if str(regtemp.estado).strip() == 'aprobado' and convertest(desde) >=  desde_reg and  convertest(hasta) <= hasta_reg:
             promoActiva.append(regtemp)
         return False
 
@@ -275,6 +274,20 @@ def findpromoDate(desde,hasta):
     
     return promoActiva
     
+def findpromoDatedueno(desde,hasta, array:list[Locales]):
+    promoActiva = []
+    def promoactiva(regtemp:Promociones,pos):
+        desde_reg =convertest(formatDate(regtemp.fechaDesdePromo)) #Fecha del registro
+        hasta_reg =convertest(formatDate(regtemp.HastaPromo)) # Fecha del registro
+        for i in range(0, len(array)):
+            if str(regtemp.estado).strip() == 'aprobado' and convertest(desde) >= desde_reg   and  convertest(hasta) <= hasta_reg and str(array[i].codLocal).strip() == str(regtemp.codLocal).strip():
+                promoActiva.append(regtemp)
+
+        return False
+
+    busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES, promoactiva)
+    
+    return promoActiva
 
 def findByUsagePromo(codPromo):
     usosPromo = []    
@@ -937,7 +950,7 @@ def admin_menu():
             case 4:
                 gestion_novedades()
             case 5:
-                reporte_uso_desc()
+                reporte_descuentos()
             case 0:
                 return
         clear("cls")
@@ -1299,12 +1312,20 @@ def reporte_descuentos():
     fechadesde = vali_date()
     print("Fecha Máxima: ")
     fechahasta = vali_date()
-    busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES, findpromo)
-    codlocal = busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,findcodprom)
-    codlocaluso = busquedasecuencial(ARCHIVO_LOGICO_USOPROMOCIONES,ARCHIVO_FISICO_USOPROMOCIONES, findcoduso)
-    for i in range(0,len(promociones)):
-        print(promociones[i].codPromo)
+    
+    promosActivas = findpromoDate(fechadesde,fechahasta)
+
+    pantalla_promocion_reporte(promosActivas)
+
+    clear("pause")
+
+    #busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES, findpromo)
+    #codlocal = busquedasecuencial(ARCHIVO_LOGICO_PROMOCIONES,ARCHIVO_FISICO_PROMOCIONES,findcodprom)
+    #codlocaluso = busquedasecuencial(ARCHIVO_LOGICO_USOPROMOCIONES,ARCHIVO_FISICO_USOPROMOCIONES, findcoduso)
+    #for i in range(0,len(promociones)):
+    #    print(promociones[i].codPromo)
 #---------------------------
+
 def crear_cuenta_dueno():
     nuevoUsuario = Usuario()
     encontro = True
@@ -1522,10 +1543,8 @@ def crear_descuento():
 
 
 
-#YA TE VAMOS A BUSCAR PUTITA
 def reporte_uso_desc():
-   
-    
+
     actualocals = []
     
     print("Fecha Mínima: ")
@@ -1533,8 +1552,10 @@ def reporte_uso_desc():
     print("Fecha Máxima: ")
     fechahasta = vali_date()
     
-    promos =findpromoDate(fechadesde,fechahasta)
+    userlocals = findBusinessByIdUser(NowSession.codUsuario)
 
+    promos =findpromoDatedueno(fechadesde,fechahasta, userlocals)
+    
     if not(locales) :
         print("Primero tendria que tener locales\n")
         print("Comuniquese con el administrador del shopping.\nSera redirigido al menu principal\n ") 
@@ -1544,7 +1565,8 @@ def reporte_uso_desc():
     pantalla_promocion_reporte(promos)
     
     clear("pause")
-    
+
+
 # --------------------------------------- Funciones del Cliente ---------------------------------------------------------------------------------------------------------------------
 
 def cliente_menu():
@@ -1764,8 +1786,8 @@ def menuprincipal():
 
 #reporte_uso_desc()
 
-#mostrarUsuarios()
-#menuprincipal()
+mostrarUsuarios()
+menuprincipal()
  
  
 
