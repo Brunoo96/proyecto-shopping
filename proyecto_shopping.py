@@ -21,9 +21,6 @@ import math
 
 # colorama.init()
 
-
-from faker import Faker
-
 #from rich import print
 
 # print("Hello, [bold magenta]World[/bold magenta]!", ":vampire:", locals())
@@ -1784,9 +1781,7 @@ def menuprincipal():
 
 
 
-#reporte_uso_desc()
-
-mostrarUsuarios()
+#mostrarUsuarios()
 menuprincipal()
  
  
