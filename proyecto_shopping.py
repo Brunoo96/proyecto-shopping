@@ -1743,7 +1743,7 @@ def usuario_registrado():
 
     saveSession(usuario) if (usuario) else None
     
-    #charge(2)
+    charge(2)
     match (NowSession.tipoUsuario):
         case ("administrador"):
             admin_menu()
